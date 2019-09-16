@@ -1,2 +1,6 @@
 /others
 *.zip
+*.aux
+*.fdb_latexmk
+*.log
+*.fls

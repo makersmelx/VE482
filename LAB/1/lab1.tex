@@ -1,13 +1,85 @@
-\documentclass{article}
+\documentclass[12pt,a4paper]{article}
 \usepackage[utf8]{inputenc}
 \usepackage{minted}
 \setminted{linenos,breaklines,tabsize=4,xleftmargin=1.5em}
-\title{$\textbf{LAB0}$}
+%\usepackage{ctex}
+\usepackage{amsmath,amscd,amsbsy,amssymb,latexsym,url,bm,amsthm}
+\usepackage{epsfig,graphicx,subfigure}
+\usepackage{enumitem,balance}
+\usepackage{wrapfig}
+\usepackage{mathrsfs,euscript}
+\usepackage[usenames]{xcolor}
+\usepackage{hyperref}
+\usepackage[vlined,ruled,commentsnumbered,linesnumbered]{algorithm2e}
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{exercise}{Exercise}
+\newtheorem*{solution}{Solution}
+\newtheorem{definition}{Definition}
+\theoremstyle{definition}
+\lstset{ 
+  backgroundcolor=\color{white},   % choose the background color; you must add \usepackage{color} or \usepackage{xcolor}; should come as last argument
+  basicstyle=\footnotesize,        % the size of the fonts that are used for the code
+  breakatwhitespace=false,         % sets if automatic breaks should only happen at whitespace
+  breaklines=true,                 % sets automatic line breaking
+  captionpos=b,                    % sets the caption-position to bottom
+  commentstyle=\color{mygreen},    % comment style
+  deletekeywords={...},            % if you want to delete keywords from the given language
+  escapeinside={\%*}{*)},          % if you want to add LaTeX within your code
+  extendedchars=true,              % lets you use non-ASCII characters; for 8-bits encodings only, does not work with UTF-8
+  firstnumber=1,                % start line enumeration with line 1000
+%   frame=single,	                   % adds a frame around the code
+  keepspaces=true,                 % keeps spaces in text, useful for keeping indentation of code (possibly needs columns=flexible)
+  keywordstyle=\color{blue},       % keyword style
+  language=Octave,                 % the language of the code
+  morekeywords={*,...},            % if you want to add more keywords to the set
+  numbers=left,                    % where to put the line-numbers; possible values are (none, left, right)
+  numbersep=5pt,                   % how far the line-numbers are from the code
+  numberstyle=\tiny\color{mygray}, % the style that is used for the line-numbers
+  rulecolor=\color{black},         % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. comments (green here))
+  showspaces=false,                % show spaces everywhere adding particular underscores; it overrides 'showstringspaces'
+  showstringspaces=false,          % underline spaces within strings only
+  showtabs=false,                  % show tabs within strings adding particular underscores
+  stepnumber=2,                    % the step between two line-numbers. If it's 1, each line will be numbered
+  stringstyle=\color{mymauve},     % string literal style
+  tabsize=2,	                   % sets default tabsize to 2 spaces
+  title=\lstname                   % show the filename of files included with \lstinputlisting; also try caption instead of title
+}
+
+%\numberwithin{equation}{section}
+%\numberwithin{figure}{section}
+
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+
+\newcommand{\postscript}[2]
+ {\setlength{\epsfxsize}{#2\hsize}
+  \centerline{\epsfbox{#1}}}
+
+\renewcommand{\baselinestretch}{1.0}
+
+\setlength{\oddsidemargin}{-0.365in}
+\setlength{\evensidemargin}{-0.365in}
+\setlength{\topmargin}{-0.3in}
+\setlength{\headheight}{0in}
+\setlength{\headsep}{0in}
+\setlength{\textheight}{10.1in}
+\setlength{\textwidth}{7in}
+\makeatletter \renewenvironment{proof}[1][Proof] {\par\pushQED{\qed}\normalfont\topsep6\p@\@plus6\p@\relax\trivlist\item[\hskip\labelsep\bfseries#1\@addpunct{.}]\ignorespaces}{\popQED\endtrivlist\@endpefalse} \makeatother
+\makeatletter
+\renewenvironment{solution}[1][Solution] {\par\pushQED{\qed}\normalfont\topsep6\p@\@plus6\p@\relax\trivlist\item[\hskip\labelsep\bfseries#1\@addpunct{.}]\ignorespaces}{\popQED\endtrivlist\@endpefalse} \makeatother
+\title{VE482 LAB1}
 \author{Wu Jiayao 517370910257 }
 \date{September 2019}
-
 \begin{document}
-
 \maketitle
 \section{Hardware overview}
 \subsection{Where is the CPU hidden, and why?}
@@ -25,10 +97,45 @@
     \par Overclocking is the action of increasing the clock rate of a certain component in the computer to exceed the rate certified by its manufacturer.
 \subsection{What are pins on a PCI/PCI-e card and what are they used for?}
     \par Pins are tiny metail sticks at the bottom of PCI/PCI-e card. They are either used to connect ground, supply power to PCI/PCI-e card, transfer signal between motherboard and PCI-e card, or may be pulled low or sensed by multiple cards(Open drain), or tied together on card(Sense pin).
+\newpage
 \subsection{Before PCI-e became a common standard many graphics cards were using Accelerated Graphics
 Port (AGP), explain why.}
     \par AGP is based on PCI. It provides connection between the slot and the processor instead of using the PCI bus, which allows higher clock rate. When PCI-e was released, since it performs better than PCI, AGP is replaced by PCI-e.
+    
 \section{Basic shell}
+\subsection{Use the mkdir, touch, mv, cp, and ls commands to:}
+\begin{lstlisting}[language=sh]
+    # Create a file named test.
+        touch test
+        
+    # Move test to dir/test.txt, where dir is a new directory.
+        mkdir dir
+        mv test dir/test.txt
+        
+    # Copy dir/test.txt to dir/test_copy.txt.
+        cp dir/test.txt dir/text_copy.txt
+        
+    # List all the files contained in dir.
+        ls dir -a
+\end{lstlisting}
+\subsection{Use the grep command to:}
+\begin{lstlisting}[language=sh]
+    # List all the files form /etc containing the pattern 127.0.0.1.
+        grep -rl '127.0.0.1' /etc
+    
+    # Only print the lines containing your username and root in the file /etc/passwd (only one grep
+should be used)
+        grep -rE '(makersmelx|root)' /etc/passwd
+\end{lstlisting}
+\subsection{Use the find command to:}
+\begin{lstlisting}[language=sh]
+    # List all the files from /etc that have been accessed less than 24 hours ago.
+        find /etc -atime 1
+        
+    # List all the files from /etc whose name contains the pattern “netw”.
+        find /etc -name '*netw*'
+\end{lstlisting}
+
 \subsection{In the bash man-page read the part related to redirections. Explain the following signs \mintinline{c}{>}, \mintinline{c}{>>}, \mintinline{c}{<<<}, \mintinline{c}{>&1}, and \mintinline{c}{2>&1 >}. What is the use of the tee command.}
     \par \mintinline{c}{>} redirects the standard output into a file. (name written on the right) \\
     \mintinline{c}{>>} redirects and appends the standard output into a file. (name written on the right) \\
