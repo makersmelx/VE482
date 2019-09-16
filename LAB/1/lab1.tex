@@ -1,0 +1,49 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{minted}
+\setminted{linenos,breaklines,tabsize=4,xleftmargin=1.5em}
+\title{$\textbf{LAB0}$}
+\author{Wu Jiayao 517370910257 }
+\date{September 2019}
+
+\begin{document}
+
+\maketitle
+\section{Hardware overview}
+\subsection{Where is the CPU hidden, and why?}
+    \par CPU is hidden on the motherboard under the fan. The reason is to make sure the fan can efficiently cool CPU down, as CPU can produce much heat when working.
+\subsection{What are the North and South bridges?}
+    \par North bridge is a chip that deals with communications with CPU(through front-side bus), RAM and PCI Express, and the south bridge. It does the tasks that require higher performance. It is directly connected to CPU. It is also called Memory Controller Hub.
+    \par South bridge is a chip that handles all of a computer's I/O functions. It implements slower capabilities of the motherboard. It is not directly connected to CPU. It is also called I/O Controller Hub.
+\subsection{How are the North and South bridges connected together?}
+    \par They are connected together through PCI bus. For example, for Intel, it's Direct Media Interface.
+\subsection{What is the BIOS?}
+    \par It is the short for Basic Input Ouput System. It is a firmware used to perform hardware initialization during booting process.
+\subsection{Take out the CPU, rotate it and try to plug it back in a different position, is that working?}
+    \par No. Some CPUs are designed so that they can only be plugged in one certain direction.
+\subsection{Explain what overclocking is?}
+    \par Overclocking is the action of increasing the clock rate of a certain component in the computer to exceed the rate certified by its manufacturer.
+\subsection{What are pins on a PCI/PCI-e card and what are they used for?}
+    \par Pins are tiny metail sticks at the bottom of PCI/PCI-e card. They are either used to connect ground, supply power to PCI/PCI-e card, transfer signal between motherboard and PCI-e card, or may be pulled low or sensed by multiple cards(Open drain), or tied together on card(Sense pin).
+\subsection{Before PCI-e became a common standard many graphics cards were using Accelerated Graphics
+Port (AGP), explain why.}
+    \par AGP is based on PCI. It provides connection between the slot and the processor instead of using the PCI bus, which allows higher clock rate. When PCI-e was released, since it performs better than PCI, AGP is replaced by PCI-e.
+\section{Basic shell}
+\subsection{In the bash man-page read the part related to redirections. Explain the following signs \mintinline{c}{>}, \mintinline{c}{>>}, \mintinline{c}{<<<}, \mintinline{c}{>&1}, and \mintinline{c}{2>&1 >}. What is the use of the tee command.}
+    \par \mintinline{c}{>} redirects the standard output into a file. (name written on the right) \\
+    \mintinline{c}{>>} redirects and appends the standard output into a file. (name written on the right) \\
+    \mintinline{c}{<<<} redirects the contents on the right as the standard input of the command on the left. \\
+    \mintinline{c}{>&1} redirects the standard output into standard output. \\
+    \mintinline{c}{2>&1 >}redirects the standard error into standard output, then redirects the origin standard output into a file. \\
+\subsection{Explain the behaviour of the \mintinline{c}{xargs} command and of the $|$ sign.}
+    \mintinline{c}{xargs} is used to build and execute commands from standard input. \\
+    The $|$ sign pipes the standard output of the command on the left into the command on the right as its standard input.
+\subsection{What are the \mintinline{c}{head} and \mintinline{c}{tail} commands? How to “live display” a file as new lines are appended?}
+    \mintinline{c}{head} and \mintinline{c}{tail} are used to get the first several and last several lines of a file. \\
+    Use \mintinline{c}{tail} -f option.
+\subsection{How to monitor the system using \mintinline{c}{ps}, \mintinline{c}{top}, \mintinline{c}{free}, \mintinline{c}{vmstat}?}
+    \mintinline{c}{ps} is to monitor process. \\
+    \mintinline{c}{top} is to dynamically monitor processes, CPU and RAM. \\
+    \mintinline{c}{free} is to monitor RAM. \\
+    \mintinline{c}{vmstat} collects and displays summary information about operating system memory, processes, interrupts, paging and block I/O.
+\end{document}
