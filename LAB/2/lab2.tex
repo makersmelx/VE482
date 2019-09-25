@@ -1,0 +1,251 @@
+\documentclass[12pt,a4paper]{article}
+%\usepackage{ctex}
+
+\usepackage{amsmath,amscd,amsbsy,amssymb,latexsym,url,bm,amsthm}
+\usepackage{epsfig,graphicx,subfigure}
+\usepackage{enumitem,balance}
+\usepackage{wrapfig}
+\usepackage{mathrsfs,euscript}
+\usepackage[usenames]{xcolor}
+\usepackage{hyperref}
+\usepackage[vlined,ruled,commentsnumbered,linesnumbered]{algorithm2e}
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{exercise}{Exercise}
+\newtheorem*{solution}{Solution}
+\newtheorem{definition}{Definition}
+\theoremstyle{definition}
+
+\lstset{
+    columns=fixed,
+    frame=shadowbox,
+    backgroundcolor=\color[RGB]{245,245,244},
+    keywordstyle=\color[RGB]{40,40,255},
+    numberstyle=\footnotesize\color{darkgray},
+    commentstyle=\it\color[RGB]{0,96,96},
+    stringstyle=\rmfamily\slshape\color[RGB]{128,0,0},
+    showstringspaces=false,
+    language=bash
+}
+
+%\numberwithin{equation}{section}
+%\numberwithin{figure}{section}
+
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+
+\newcommand{\postscript}[2]
+ {\setlength{\epsfxsize}{#2\hsize}
+  \centerline{\epsfbox{#1}}}
+
+\renewcommand{\baselinestretch}{1.0}
+
+\setlength{\oddsidemargin}{-0.365in}
+\setlength{\evensidemargin}{-0.365in}
+\setlength{\topmargin}{-0.3in}
+\setlength{\headheight}{0in}
+\setlength{\headsep}{0in}
+\setlength{\textheight}{10.1in}
+\setlength{\textwidth}{7in}
+\makeatletter \renewenvironment{proof}[1][Proof] {\par\pushQED{\qed}\normalfont\topsep6\p@\@plus6\p@\relax\trivlist\item[\hskip\labelsep\bfseries#1\@addpunct{.}]\ignorespaces}{\popQED\endtrivlist\@endpefalse} \makeatother
+\makeatletter
+\renewenvironment{solution}[1][Solution] {\par\pushQED{\qed}\normalfont\topsep6\p@\@plus6\p@\relax\trivlist\item[\hskip\labelsep\bfseries#1\@addpunct{.}]\ignorespaces}{\popQED\endtrivlist\@endpefalse} \makeatother
+\title{VE482 LAB2}
+\author{Wu Jiayao 517370910257 }
+\date{September 2019}
+
+\begin{document}
+
+\maketitle
+\section{Minix 3}
+\subsection{}
+  Using pkgin.
+  \begin{lstlisting}[language=sh]
+      pkgin install
+      pkgin update
+      pkgin remove
+  \end{lstlisting}
+\subsection{}
+  \textbf{ifconfig} is for checking network state, configuring, controlling, and querying TCP/IP network interface parameters. \\
+  \textbf{adduser} is to add a new user of the system. \\ 
+  \textbf{passwd} is to set/delete/check the password for certain user.
+\section{}
+\subsection{}
+    \begin{lstlisting}
+      ssh root@localhost
+    \end{lstlisting}
+\subsection{}
+    The default port is 22.
+    To change for 2222, do on Minix 3
+    \begin{lstlisting}[language=sh]
+        vi /usr/pkg/etc/ssh/sshd_config
+    \end{lstlisting}
+    and edit the configuration of "Port"
+    do on Linux
+    \begin{lstlisting}[language=sh]
+        ssh root@localhost -p2222
+    \end{lstlisting}
+\subsection{}
+  \begin{lstlisting}
+      ls $HOME/.ssh
+      # Output
+      config id_rsa id_rsa.pub known_hosts
+  \end{lstlisting}
+  \textbf{config} is the config file of ssh. \\
+  \textbf{id\_rsa} is the private key of ssh. \\
+  \textbf{id\_rsa.pub} is the public key of ssh. \\
+  \textbf{known\_hosts} is the ssh server that has logged before. \\
+  Do on Linux:
+  \begin{lstlisting}[language=sh]
+      vi ~/.ssh/config
+  \end{lstlisting}
+  Add contents into \textbf{config} file
+  \begin{lstlisting}[language=sh]
+    Host minix3
+    Hostname localhost
+    Port 2222
+    User root
+  \end{lstlisting}
+  Connect Minix3 on Linux by 
+  \begin{lstlisting}[language=sh]
+    ssh minix3
+  \end{lstlisting}
+\subsection{}
+  First, ssh client generates a pair of key, then sends the key to ssh server. The ssh server adds the key to the list of authorized hosts. \\
+  Next time when the ssh client wants to login, it sends the key again to the ssh server. The ssh server uses public key cryptography to verify the identity of the ssh client. If the client is verified, a encrypted connection is made.
+  \begin{lstlisting}
+      ssh-keygen -t rsa
+      scp -P2222 ~/.ssh/id_rsa.pub root@localhost:/root
+      ssh minix3
+      # In minix3
+      cat ~/id_psa.pub >> ~/.ssh/authorized_keys
+      exit
+      ssh minix3 -i ~/.ssh/id_rsa
+  \end{lstlisting}
+\section{}
+\subsection{}
+  \begin{lstlisting}[language=sh]
+    #/bin/bash
+  \end{lstlisting}
+\subsection{}
+  \textbf{sh} is the origin shell of Unix, while \textbf{bash,csh,zsh} are all expansions of \textbf{sh}, with different features.
+\subsection{}
+  \begin{lstlisting}[language=sh]
+      #define variables, no spaces
+      myVar=1 
+      #Using ${} to access variables.
+      echo ${myVar} #access
+  \end{lstlisting}
+\subsection{}
+  \textbf{\$0} means argv[0] in C/C++, the name of the command.\\
+  \textbf{\$1} means argv[1] in C/C++, the first argument of the command.\\
+  \textbf{\$n} means argv[n] in C/C++, the nth argument of the command.\\
+  \textbf{\$?} means the exit state of the last command.\\
+  \textbf{\$!} means the process ID of the most recently executed background.\\
+\subsection{}
+  \begin{lstlisting}[language=sh]
+    #define array
+    array=(var1 var2 var3 var4)
+    #access elements
+    ${array[0]}
+    #assign elements
+    array[3]=varX
+  \end{lstlisting}
+\subsection{}
+  \begin{lstlisting}[language=sh]
+    #if
+    if[ "$1" = "YES" ];then
+      echo $1
+    elif[ "$1" = "NO" ];then
+      echo 123
+    else
+      echo 321
+    fi
+    #switch
+    case $1 in
+      1)
+        echo 1 ;;
+      2)
+        echo 2 ;;
+      *)
+        echo 0 ;;
+    esac
+  \end{lstlisting}
+\subsection{}
+  \begin{lstlisting}[language=sh]
+    #for-in
+    for file in $(ls); do
+      echo $file;
+    done
+    #for(C style)
+    for((i=0;i<10;i++));do
+      echo 12345
+    done
+  \end{lstlisting}
+\subsection{}
+  \begin{lstlisting}[language=sh]
+    #while
+    int=0
+    while (($int < $1)); do
+        let int=int+1
+    done
+  \end{lstlisting}
+\subsection{}
+  PS3 provides a custom prompt for the user to select a value.
+  \begin{lstlisting}
+  PS3="Select a food (1-4): "
+  select i in t m mt exit
+  do
+    case $i in
+      t) echo "Tea";;
+      m) echo "Milk";;
+      mt) echo "Milktea";;
+      exit) exit;;
+    esac
+  done
+  \end{lstlisting}
+\subsection{}
+  The \textbf{iconv} command is used to convert between different character encodings. As there are various encodings for different OS, if one file is to be used in more than one OS, \textbf{iconv} command is very important.
+\subsection{}
+  \textbf{\$\{\#temp\}} means the length of \$temp. \\
+  \textbf{\$\{temp\%\%word\}} deletes \textbf{word} on the right of \$temp. \\
+  \textbf{\$\{temp/pattern/string\}} replaces \textbf{pattern} with \textbf{string} in \textbf{\$\{\#temp\}}.
+\subsection{}
+  Regular expression is a sequence of characters that define a search pattern.
+  \begin{lstlisting}[language=sh]
+    find . -regextype sed -regex ".*/*dmp*"
+  \end{lstlisting}
+\section{Warning Part}
+\subsection{}
+  Sed, stream editor, is a Unix utility that parses and transforms text, using a simple, compact programming language. It is efficent
+  \begin{lstlisting}
+    sed [-Ealn] command [file ...]
+  \end{lstlisting}
+  Awk is a pattern-directed scanning and processing language.
+  \begin{lstlisting}
+    awk [ -F fs ] [ -v var=value ] [ 'prog' | -f progfile ] [file ... ]
+  \end{lstlisting}
+\subsection{}
+  \begin{lstlisting}
+    curl --silent 'http://aqicn.org/? \
+    city=Shanghai&widgetscript&size=large' \
+    | sed 's/^.*title\=\\"Moderate\\">/AQ: /g' \
+    | sed "s/<.*$//g" | sed -n "3p"
+    curl --silent 'http://aqicn.org/? \
+    city=Shanghai&widgetscript&size=large' \
+    | sed "s/.*style\='font-size:10px;'>/Temp: /g" \
+    | sed 's/<.*$//g' | sed -n '3p'
+  \end{lstlisting}
+\subsection{}
+  \begin{lstlisting}
+    ifconfig ap1 | awk '/ether /{print $2}'
+    #For macbook pro 
+  \end{lstlisting}
+\end{document}

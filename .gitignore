@@ -6,11 +6,18 @@
 *.fdb_latexmk
 *.log
 *.fls
-/.*/.DS_Store
+*.out
 *.cmake
-/PROJECT/p1/cmake-build-debug/*
-/PROJECT/p1/others/*
+*.gz
+
+/**/.DS_Store
+/**/cmake-build-debug/*
+/**/others/*
 /PROJECT/p1/char_mode/*
-/.*/idea/*
+/**/.idea/*
+/**/.vscode
+*test*
+
+HOMEWORK/HW1/新文档 2019-09-21 00.25.50.pdf
 mumsh
 mumsh_memory_check
