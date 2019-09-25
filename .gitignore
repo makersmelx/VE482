@@ -1,6 +1,16 @@
-/others
+*.tar
+*.txt
+/.*/others
 *.zip
 *.aux
 *.fdb_latexmk
 *.log
 *.fls
+/.*/.DS_Store
+*.cmake
+/PROJECT/p1/cmake-build-debug/*
+/PROJECT/p1/others/*
+/PROJECT/p1/char_mode/*
+/.*/idea/*
+mumsh
+mumsh_memory_check
