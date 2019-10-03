@@ -1,10 +1,10 @@
 #include "shell.h"
 
+
 void process()
 {
     while (1)
     {
-
         char **args = malloc(sizeof(char *) * (MAXARGS + 2));
         char *filePath = malloc(sizeof(char) * (MAXLINE + 1));
         int argNum = 0;
@@ -12,10 +12,14 @@ void process()
         int promptFlag = 0;
         int stdiFD = dup(0);
         int stdoFD = dup(1);
+        //int pipeMark = 0; // locate the command that on the right of '|'
         do
         {
+//            if(inputState == PIPE) //The left command has not executed yet
+//            {
+//
+//            }
             if (inputState == PROCESSING)
-            //if (inputState == 0 && 11) for pipe
             {
                 inputState = read_command(args, &argNum);
                 if (inputState == EXIT)
@@ -24,9 +28,11 @@ void process()
                     free(args);
                     free(filePath);
                     printf("exit\n");
+                    free(allFork);
                     exit(0);
                 }
                 if (inputState == END_OF_LINE && argNum == 0)
+                //Blank line
                 {
                     break;
                 }
@@ -37,38 +43,12 @@ void process()
                     if(promptFlag == 0)
                     {
                         promptFlag = 1;
-                        pid_t pid;
-                        pid = fork();
-                        if (pid < 0)
-                        {
-                            printf("Fork error.\n");
-                        }
-                        else if (pid == 0)
-                        {
-                            print_prompt();
-                            exit(0);
-                        }
-                        else
-                        {
-                            wait(NULL);
-                        }
+                        print_prompt();
                     }
-
-                    pid_t pid;
-                    pid = fork();
-                    if (pid < 0)
+                    execute(args,argNum);
+                    if(allFork->sigStatus == SIGINT ||allFork->sigStatus == SIGTERM )
                     {
-                        printf("Fork error.\n");
-                    }
-                    else if (pid == 0)
-                    {
-
-                        execute(args, argNum);
-                        exit(0);
-                    }
-                    else
-                    {
-                        wait(NULL);
+                        break;
                     }
                 }
                 else
@@ -79,40 +59,18 @@ void process()
             }
             else
             {
-
-
-                if (promptFlag == 0)
+                if(promptFlag == 0)
                 {
                     promptFlag = 1;
-                    pid_t pid = fork();
-
-                    if (pid < 0) {
-                        printf("Fork error.\n");
-                    } else if (pid == 0) {
-                        print_prompt();
-                        exit(0);
-                    } else {
-                        wait(NULL);
-                    }
+                    print_prompt();
                 }
                 inputState = redirection(inputState, filePath);
-                if (inputState == END_OF_LINE || inputState == PIPE)
+                if (inputState == END_OF_LINE)
                 {
-
-                    pid_t pid = fork();
-
-                    if (pid < 0)
+                    execute(args,argNum);
+                    if(allFork->sigStatus == SIGINT ||allFork->sigStatus == SIGTERM )
                     {
-                        printf("Fork error.\n");
-                    }
-                    else if (pid == 0)
-                    {
-                        execute(args, argNum);
-                        exit(0);
-                    }
-                    else
-                    {
-                        wait(NULL);
+                        break;
                     }
                 }
 
@@ -124,6 +82,7 @@ void process()
         {
             free(args[i]);
         }
+        resetFork();
         free(args);
         free(filePath);
         fflush(stdin);
@@ -132,10 +91,14 @@ void process()
         dup2(stdoFD, 1);
         close(stdiFD);
         close(stdoFD);
+
     }
 }
 
 int main()
 {
+    allFork = malloc(sizeof(fork_t));
+    signal(SIGINT,sigHandler);
+    resetFork();
     process();
 }

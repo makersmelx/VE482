@@ -2,7 +2,7 @@
 
 int redirection(int state, char *filePath)
 {
-    scanf("%[<>]",filePath);
+    scanf("%[<>|]",filePath);
     if (!strcmp(filePath,"<"))
     {
         return SINGLE_LEFT_REDIRECTION;
@@ -16,12 +16,15 @@ int redirection(int state, char *filePath)
     {
         return SINGLE_RIGHT_REDIRECTION;
     }
+    else if(!strcmp(filePath,"|"))
+    {
+        return PIPE;
+    }
     char* space = malloc(sizeof(char)*(MAXLINE+1));
     scanf("%[ ]",space);
     free(space);
     char end='\0';
-    //scanf("%s",filePath);
-    scanf("%[^><\n ]", filePath);
+    scanf("%[^><\n| ]", filePath);
     end = getc(stdin);
     if(end == '<' || end =='>')
     {

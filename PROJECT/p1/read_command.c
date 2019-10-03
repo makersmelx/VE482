@@ -7,7 +7,7 @@ int read_command(char **args, int *argNum)
     int state = PROCESSING;
     do
     {
-        scanf("%[<>]",buffer);
+        scanf("%[<>|]",buffer);
         if (!strcmp(buffer,"<"))
         {
             state = SINGLE_LEFT_REDIRECTION;
@@ -24,13 +24,18 @@ int read_command(char **args, int *argNum)
             state =  SINGLE_RIGHT_REDIRECTION;
             break;
         }
+        else if(!strcmp(buffer,"|"))
+        {
+            state = PIPE;
+            break;
+        }
 
         char* space = malloc(sizeof(char)*(MAXLINE+1));
         scanf("%[ ]",space);
         free(space);
         scanf("%[^><\n ]", buffer);
         end = getc(stdin);
-        if(end == '<' || end =='>')
+        if(end == '<' || end =='>' || end == '|')
         {
             ungetc(end,stdin);
         }
