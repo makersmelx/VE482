@@ -105,7 +105,7 @@ struct hook_entry {
 };
 ~~~
 
-To map shift+F7, content about SF7 is added into the dmp.c
+To map shift+F7, function name and description about SF7 is added into the **dmp.c**
 
 #### 2. The second is proto.h in minix/usr/src/servers/is
 
@@ -124,7 +124,7 @@ void procNum_dmp(void);
 //***************************************
 ~~~
 
-Declration of the function **procNum_dmp(void)** for Shift+F7 is added.
+Declare the function **procNum_dmp(void)** for Shift+F7 into header file **proto.h**
 
 #### 3. The third is dmp_kernel.c in minix/usr/src/servers/is
 
@@ -151,9 +151,13 @@ void procNum_dmp()
 }
 ~~~
 
-Add the implementation of function **procNum_dmp(void)** into dmp_kernel.c
+Add the implementation of function **procNum_dmp(void)** into **dmp_kernel.c**
+
+The implementation reference is from **dmp_kernel.c** itself.
 
 #### 4. Rebuild the kernel
+
+Reference from offical wiki.
 
 ~~~shell
 cd /usr/src/releasetools
