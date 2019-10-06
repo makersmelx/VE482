@@ -3,22 +3,9 @@
 int redirection(int state, char *filePath)
 {
     scanf("%[<>|]",filePath);
-    if (!strcmp(filePath,"<"))
+    if (!strcmp(filePath,"<") || !strcmp(filePath,">>") || !strcmp(filePath,">") ||!strcmp(filePath,"|"))
     {
-        return SINGLE_LEFT_REDIRECTION;
-    }
-
-    else if (!strcmp(filePath,">>"))
-    {
-        return DOUBLE_RIGHT_REDIRECTION;
-    }
-    else if (!strcmp(filePath,">"))
-    {
-        return SINGLE_RIGHT_REDIRECTION;
-    }
-    else if(!strcmp(filePath,"|"))
-    {
-        return PIPE;
+        return PARSEERR;
     }
     char* space = malloc(sizeof(char)*(MAXLINE+1));
     scanf("%[ ]",space);
@@ -26,7 +13,7 @@ int redirection(int state, char *filePath)
     char end='\0';
     scanf("%[^><\n| ]", filePath);
     end = getc(stdin);
-    if(end == '<' || end =='>')
+    if(end == '<' || end =='>' || end == '|')
     {
         ungetc(end,stdin);
     }
@@ -73,14 +60,9 @@ int redirection(int state, char *filePath)
         break;
     }
 
-    
     if(end == '\n')
     {
         return END_OF_LINE;
-    }
-    else if (end == '|')
-    {
-        return PIPE;
     }
     return PROCESSING;
 }

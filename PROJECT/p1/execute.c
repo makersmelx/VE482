@@ -1,5 +1,21 @@
 #include "shell.h"
 
+void cpyArgsExec(int procIndex,int* pipeMark,char** args)
+{
+    
+    int tmpArgNums = pipeMark[procIndex + 1] - pipeMark[procIndex];
+    char **tmpArgs = malloc(sizeof(char *) * (tmpArgNums + 1));
+    tmpArgs[tmpArgNums] = NULL;
+    for (int i = 0; i < tmpArgNums;i++)
+    {
+        tmpArgs[i] = malloc(sizeof(char) * MAXLINE);
+        strcpy(tmpArgs[i], args[pipeMark[procIndex] + i]);
+    }
+    execvp(tmpArgs[0], tmpArgs);
+    errorPrompt();
+    free(tmpArgs);
+}
+
 void execute(char **args, int argNum)
 {
     int tmpLoc = 0;
@@ -11,6 +27,11 @@ void execute(char **args, int argNum)
     else
     {
         pid_t pid = fork();
+        if(pid<0)
+        {
+            errorPrompt();
+            return;
+        }
         addToAllFork(pid);
         if(pid == 0)
         {
@@ -25,7 +46,5 @@ void execute(char **args, int argNum)
         {
             waitpid(pid,&tmpLoc,WUNTRACED);
         }
-    }
-
-    
+    } 
 }

@@ -12,42 +12,72 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <dirent.h>
-#define MAXLINE 1024
-#define MAXARGS 20
-#define SINGLE_LEFT_REDIRECTION -1
-#define DOUBLE_RIGHT_REDIRECTION 2
-#define SINGLE_RIGHT_REDIRECTION 1
-#define PROCESSING 0
-#define END_OF_LINE 10
-#define PIPE 11
-#define EXIT 482477
-#define MAX_PIPE 20
+/*=====================*
+      User config
+ *=====================*/
+#include "error_code.h"
+#include "max_limits.h"
+#include "running_code.h"
+#include "fork_t.h"
 
-typedef struct fork_t
-{
-    int forkNum;
-    int forkPid[MAX_PIPE];
-    int sigStatus;
-}fork_t;
+//#define DEBUG
 
-void process();
+/*======================================*
+               processing.c
+ *======================================*/
+int process(int,char**,char*,int*,int);
+void loopProcess();
+/*======================================*
+               print_prompt.c
+ *======================================*/
+void print_prompt(int*);
+void printExit();
+void errorPrompt();
 
-void print_prompt();
+/*======================================*
+               read_command.c
+ *======================================*/
 int read_command(char **, int *);
 
+/*======================================*
+               execute.c
+ *======================================*/
 void execute(char **, int);
+void cpyArgsExec(int,int*,char**);
+
+/*======================================*
+               redirection.c
+ *======================================*/
 int redirection(int, char*);
 
+/*======================================*
+               builtin_command.c
+ *======================================*/
 int builtinCommand(char**);
-
-void myCd(char**);
 void myPwd();
 
-void sigHandler();
+/*======================================*
+               cd.c
+ *======================================*/
+void myCd(char**);
+
+/*======================================*
+               sigHandler.c
+ *======================================*/
+void sigHandler_C();
+void sigHandler_D();
+
+/*======================================*
+               pid_Manage.c
+ *======================================*/
 void addToAllFork(int);
 void resetFork();
 
-
-fork_t *allFork;
-
+/*======================================*
+               pipe.c
+ *======================================*/
+int myPipe(int**,int*,char**,int);
+#ifdef DEBUG
+void pipeTest(int, int, int);
+#endif
 #endif

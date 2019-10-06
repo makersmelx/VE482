@@ -7,7 +7,15 @@ int read_command(char **args, int *argNum)
     int state = PROCESSING;
     do
     {
-        scanf("%[<>|]",buffer);
+        if(scanf("%[<>|]",buffer) == EOF)
+        {
+            state = allFork->sigStatus ==  SIGINT?END_OF_LINE:EXIT;
+            if(allFork->sigStatus == SIGINT)
+            {
+                printf("\n");
+            }
+            break;
+        }
         if (!strcmp(buffer,"<"))
         {
             state = SINGLE_LEFT_REDIRECTION;
@@ -33,19 +41,24 @@ int read_command(char **args, int *argNum)
         char* space = malloc(sizeof(char)*(MAXLINE+1));
         scanf("%[ ]",space);
         free(space);
-        scanf("%[^><\n ]", buffer);
+        scanf("%[^><|\n ]", buffer);
+        //Judge whether it reaches end of the line.
         end = getc(stdin);
-        if(end == '<' || end =='>' || end == '|')
+        if(end == '<' || end == '>' || end == '|')
         {
             ungetc(end,stdin);
         }
 
         if (!strcmp(buffer, "exit"))
         {
-            free(buffer);
-            return EXIT;
+            if(*argNum < 1)
+            {
+                free(buffer);
+                return EXIT;
+            }
+            
         }
-        else if(buffer[0]!='\0')
+        if(buffer[0]!='\0')
         {
             args[*argNum] = (char *)malloc(sizeof(char) * (strlen(buffer) + 1));
             strcpy(args[*argNum], buffer);
