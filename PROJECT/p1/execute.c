@@ -12,7 +12,7 @@ void cpyArgsExec(int procIndex,int* pipeMark,char** args)
         strcpy(tmpArgs[i], args[pipeMark[procIndex] + i]);
     }
     execvp(tmpArgs[0], tmpArgs);
-    errorPrompt();
+    perror("");
     free(tmpArgs);
 }
 
@@ -39,6 +39,7 @@ void execute(char **args, int argNum)
             {
                 args[argNum] = NULL;
                 execvp(args[0],args);
+                perror("");
             }
             exit(0);
         }

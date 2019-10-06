@@ -1,28 +1,23 @@
 #include "shell.h"
 
 #ifdef DEBUG
-static void checkAllFork()
-{
-    printf("forkNum: %d\n", allFork->forkNum);
-}
-
-void pipeTest(int x,int stdIn,int stdOut)
+void pipeTest(redirect_t r,int stdIn,int stdOut)
 {
     int tmpIn = dup(0);
     int tmpOut = dup(1);
     dup2(stdIn, 1);
     dup2(stdOut, 0);
-
-    if (x != -1)
-    {
-        printf("!::%d ", x);
-    }
     printf("Fish!\n");
+    printf("in: %d", r.in);
+    printf("out: %d", r.out);
+    printf("inFile: %s", r.inFile);
+    printf("outFile: %s", r.outFile);
+    printf("inUse: %d", r.inUse);
     dup2(tmpOut, 1);
     dup2(tmpIn, 0);
 }
 #endif
-int myPipe(int** pipeFd,int* pipeMark,char** args,int pipeNum)
+int myPipe(int** pipeFd,int* pipeMark,char** args,int pipeNum,redirect_t* pipeRedirect)
 {
     int procIndex = 0;
     int tmpLoc = 0;
@@ -47,27 +42,21 @@ int myPipe(int** pipeFd,int* pipeMark,char** args,int pipeNum)
         if ((pid =fork())== 0)
         {
             addToAllFork(pid);
-#ifdef DEBUG
-            checkAllFork();
-#endif
             break;
         }
-        // else if (pid < 0)
-        // {
-        //     errorPrompt();
-        //     for (int i = 0; i < pipeNum; i++)
-        //     {
-        //         close(pipeFd[i][0]);
-        //         close(pipeFd[i][1]);
-        //     }
-        //     return FORKERR;
-        // }
+        else if (pid < 0)
+        {
+            errorPrompt();
+            for (int i = 0; i < pipeNum; i++)
+            {
+                close(pipeFd[i][0]);
+                close(pipeFd[i][1]);
+            }
+            return FORKERR;
+        }
     }
     if(procIndex == 0)
     {
-#ifdef DEBUG
-        printf("child pid = %d,ppid = %d\n",getpid(),getppid());
-#endif
         for (int i = 0; i < pipeNum; i++)
         {
             if(i != procIndex)
@@ -78,13 +67,11 @@ int myPipe(int** pipeFd,int* pipeMark,char** args,int pipeNum)
         }
         close(pipeFd[procIndex][0]);
         dup2(pipeFd[procIndex][1], STDOUT_FILENO);
+        redirection_t(pipeRedirect+procIndex);
         cpyArgsExec(procIndex, pipeMark, args);
     }
     else if (procIndex == procNum - 1)
     {
-#ifdef DEBUG
-        printf("child pid = %d,ppid = %d\n",getpid(),getppid());
-#endif
         for (int i = 0; i < pipeNum; i++)
         {
             if(i == procIndex - 1)
@@ -98,15 +85,12 @@ int myPipe(int** pipeFd,int* pipeMark,char** args,int pipeNum)
             }
         }
         close(pipeFd[procIndex - 1][1]);
-        dup2(pipeFd[procIndex - 1][0], 0);
+        dup2(pipeFd[procIndex - 1][0], STDIN_FILENO);
+        redirection_t(pipeRedirect+procIndex);
         cpyArgsExec(procIndex, pipeMark, args);
-        
     }
     else if (procNum > 2 && procIndex > 0 && procIndex < procNum-1)
     {
-#ifdef DEBUG
-        printf("child pid = %d,ppid = %d\n",getpid(),getppid());
-#endif
         for (int i = 0; i < pipeNum; i++)
         {
             if(i == procIndex || i == procIndex -1)
@@ -123,9 +107,8 @@ int myPipe(int** pipeFd,int* pipeMark,char** args,int pipeNum)
         close(pipeFd[procIndex][0]);
         dup2(pipeFd[procIndex - 1][0], 0);
         dup2(pipeFd[procIndex][1], 1);
+        redirection_t(pipeRedirect+procIndex);
         cpyArgsExec(procIndex, pipeMark, args);
-        
-
     }
     else
     {

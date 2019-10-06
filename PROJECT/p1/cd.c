@@ -19,7 +19,10 @@ void myCd(char** args)
         cd_path = malloc(strlen(args[1])+1);
         strcpy(cd_path,args[1]);
     }
-    chdir(cd_path);
-    //free(cd_path);
+    if(chdir(cd_path)== -1)
+    {
+        perror(cd_path);
+    }
+    free(cd_path);
 }
 

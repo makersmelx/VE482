@@ -1,5 +1,5 @@
 #include "shell.h"
-int process(int inputState,char** args,char*filePath,int *argNum,int pipeExist)
+int process(int inputState,char** args,char*filePath,int *argNum,int pipeExist,redirect_t* pipeRedirect,int pipeNum)
 {
     if (inputState == PROCESSING)
     {
@@ -48,8 +48,8 @@ int process(int inputState,char** args,char*filePath,int *argNum,int pipeExist)
         //redirection situation
     {
         
-        inputState = redirection(inputState, filePath);
-        if (inputState == END_OF_LINE)
+        inputState = redirection(inputState, filePath,pipeExist,pipeRedirect,pipeNum);
+        if (inputState == END_OF_LINE && pipeExist == 0)
         {
             //print_prompt(promptFlag);
             execute(args,*argNum);
@@ -57,6 +57,10 @@ int process(int inputState,char** args,char*filePath,int *argNum,int pipeExist)
             {
                 return END_OF_LINE;
             }
+        }
+        else if (inputState == END_OF_LINE && pipeExist == 1)
+        {
+            return PIPE_END_OF_LINE;
         }
 
     }
@@ -67,16 +71,32 @@ void loopProcess()
 {
     while (1)
     {
-        char **args = malloc(sizeof(char *) * (MAXARGS + 2));
-        char *filePath = malloc(sizeof(char) * (MAXLINE + 1));
-        int argNum = 0;
-        int inputState = PROCESSING;
         int *promptFlag = malloc(sizeof(int));
         *promptFlag = 0;
+        print_prompt(promptFlag);
+
+        int inputState = PROCESSING;
+
+        char **args = malloc(sizeof(char *) * (MAXARGS + 2));
+        int argNum = 0;
+
         int stdiFD = dup(0);
         int stdoFD = dup(1);
-        print_prompt(promptFlag);
-        int** pipeFd = malloc(sizeof(int*)*MAX_PIPE);
+        char *filePath = malloc(sizeof(char) * (MAXLINE + 1));
+        
+        redirect_t *pipeRedirect = malloc(sizeof(redirect_t)*MAX_PIPE);
+        for(int i = 0 ; i< MAX_PIPE;i++)
+        {
+            pipeRedirect[i].in = 0;
+            pipeRedirect[i].out = 0;
+            pipeRedirect[i].inUse = 0;
+            pipeRedirect[i].inFile = malloc(sizeof(char) * (MAXLINE+1));
+            pipeRedirect[i].outFile = malloc(sizeof(char )*(MAXLINE+1));
+        }
+
+       
+
+        int **pipeFd = malloc(sizeof(int *) * MAX_PIPE);
         for(int i = 0 ; i < MAX_PIPE;i++)
         {
             pipeFd[i] = malloc(sizeof(int)*2);
@@ -84,11 +104,12 @@ void loopProcess()
         int pipeNum = 0;//Number of "|"
         int pipeExist = 0;
         int pipeMark[MAX_PIPE+1]={0};//marks the loc that stores each command
+
         while(inputState != END_OF_LINE && inputState != PIPE_END_OF_LINE)
         {
             do
             {
-                inputState = process(inputState,args,filePath,&argNum,pipeExist);
+                inputState = process(inputState,args,filePath,&argNum,pipeExist,pipeRedirect,pipeNum);
                 if(inputState < PROCESSING)
                     //ERROR occurs
                 {
@@ -117,6 +138,11 @@ void loopProcess()
                     inputState = PARSEERR;
                     break;
                 }
+                else if(end == '|')
+                {
+                    printf("error: missing program\n");
+                    break;
+                }
                 else
                 {
                     ungetc(end, stdin);
@@ -127,9 +153,9 @@ void loopProcess()
             }
             else if (inputState == PIPE_END_OF_LINE)
             {
-                //print_prompt(promptFlag);
+                //redirection_t(pipeRedirect);
                 pipeMark[pipeNum + 1] = argNum;
-                inputState = myPipe(pipeFd, pipeMark, args, pipeNum);
+                inputState = myPipe(pipeFd, pipeMark, args, pipeNum,pipeRedirect);
             }
             if(inputState < PROCESSING)
             //error
@@ -146,11 +172,20 @@ void loopProcess()
         }
         free(args);
 
-        for(int i = 0 ; i < pipeNum;i++)
+        for(int i = 0 ; i < MAX_PIPE;i++)
         {
             free(pipeFd[i]);
         }
         free(pipeFd);
+
+        for(int i = 0 ; i<MAX_PIPE;i++)
+        {
+            free(pipeRedirect[i].inFile);
+            free(pipeRedirect[i].outFile);
+        }
+
+        free(pipeRedirect);
+
         free(filePath);
         free(promptFlag);
         fflush(stdin);

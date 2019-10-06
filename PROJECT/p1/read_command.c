@@ -2,12 +2,13 @@
 int read_command(char **args, int *argNum)
 //will set input and output redirection
 {
-    char *buffer = malloc(sizeof(char) * (MAXLINE + 1));
+    char *buffer = malloc(sizeof(char) * (MAXLINE));
+    buffer[0]='\0';
     char end = '\0';
     int state = PROCESSING;
     do
     {
-        if(scanf("%[<>|]",buffer) == EOF)
+        if(scanf("%[ ]",buffer) == EOF)
         {
             state = allFork->sigStatus ==  SIGINT?END_OF_LINE:EXIT;
             if(allFork->sigStatus == SIGINT)
@@ -16,6 +17,7 @@ int read_command(char **args, int *argNum)
             }
             break;
         }
+        scanf("%[<>|]",buffer);
         if (!strcmp(buffer,"<"))
         {
             state = SINGLE_LEFT_REDIRECTION;

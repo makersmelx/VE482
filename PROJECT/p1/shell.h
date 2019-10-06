@@ -19,13 +19,14 @@
 #include "max_limits.h"
 #include "running_code.h"
 #include "fork_t.h"
+#include "redirect_t.h"
 
 //#define DEBUG
 
 /*======================================*
                processing.c
  *======================================*/
-int process(int,char**,char*,int*,int);
+int process(int,char**,char*,int*,int,redirect_t*,int);
 void loopProcess();
 /*======================================*
                print_prompt.c
@@ -48,8 +49,8 @@ void cpyArgsExec(int,int*,char**);
 /*======================================*
                redirection.c
  *======================================*/
-int redirection(int, char*);
-
+int redirection(int, char*,int,redirect_t*,int);
+void redirection_t(redirect_t*);
 /*======================================*
                builtin_command.c
  *======================================*/
@@ -76,8 +77,10 @@ void resetFork();
 /*======================================*
                pipe.c
  *======================================*/
-int myPipe(int**,int*,char**,int);
+int myPipe(int**,int*,char**,int,redirect_t*);
 #ifdef DEBUG
-void pipeTest(int, int, int);
+void pipeTest(redirect_t, int, int);
 #endif
+
+
 #endif
