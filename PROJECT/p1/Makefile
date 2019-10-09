@@ -1,6 +1,6 @@
 CC = clang
 CFLAGS = -std=gnu11 -O2 -Wall -Wextra -Werror -pedantic -Wno-unused-result
-MUMSH_SRC = main.c print_prompt.c read_command.c redirection.c execute.c builtin_command.c pwd.c cd.c pid_Manage.c processing.c pipe.c sig_handler.c
+MUMSH_SRC = main.c print_prompt.c read_command.c redirection.c execute.c builtin_command.c pwd.c cd.c  processing.c pipe.c sig_handler.c
 MUMSH = mumsh
 MUMSHMC_FLAGS = -fsanitize=address -fno-omit-frame-pointer -fsanitize=undefined -fsanitize=integer
 MUMSHMC = mumsh_memory_check

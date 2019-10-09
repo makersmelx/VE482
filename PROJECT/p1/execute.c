@@ -1,6 +1,6 @@
 #include "shell.h"
 
-void cpyArgsExec(int procIndex,int* pipeMark,char** args)
+void cpyArgsExec(int procIndex,int* pipeMark,char** args,int shmid,int* errorCode)
 {
     
     int tmpArgNums = pipeMark[procIndex + 1] - pipeMark[procIndex];
@@ -12,40 +12,127 @@ void cpyArgsExec(int procIndex,int* pipeMark,char** args)
         strcpy(tmpArgs[i], args[pipeMark[procIndex] + i]);
     }
     execvp(tmpArgs[0], tmpArgs);
-    perror("");
+    for(int i = 0 ; i< tmpArgNums+1;i++)
+    {
+        free(tmpArgs[i]);
+    }
     free(tmpArgs);
+    errorCode = (int*) shmat(shmid,NULL,0);
+    *errorCode = errno + procIndex*1000;
+    shmdt(errorCode);
+    exit(0);
 }
 
-void execute(char **args, int argNum)
+int execute(char **args, int argNum,int inputState)
 {
+    if(*background == 1)
+    {
+        for(int i = 0; i< *procCount;i++)
+        {
+            if(waitpid(PROCTABLE[i].pid,NULL,WNOHANG) == 0)
+            {
+                PROCTABLE[i].done = 0;
+            }
+            else
+            {
+                PROCTABLE[i].done = 1;
+            }
+
+        }
+
+        //signal(SIGCHLD,SIG_DFL);
+        pid_t pid;
+        pid = fork();
+        if (pid < 0)
+        {
+            printf("Fork error.\n");
+        }
+        else if (pid == 0)
+        {
+            printf("[%d] %s\n",*procCount+1,backgroundPrompt);
+            exit(0);
+        }
+        else
+        {
+            //printf("CHeck: %d",*background);
+            if(*background == 1)
+            {
+                prompt_any("mumsh $ ");
+            }
+            wait(NULL);
+        }
+    }
+
+    int shmid = shmget(IPC_PRIVATE,MAXLINE,IPC_CREAT | 0600);
+    struct shmid_ds buf;
+    int* errorCode;
     int tmpLoc = 0;
+    int err = 0;
     if(!strcmp(args[0],"cd"))
     {
         myCd(args);
-        return;
     }
     else
     {
         pid_t pid = fork();
+
+        if(*background == 1)
+        {
+            PROCTABLE[*procCount].pid = pid;
+            strcpy(PROCTABLE[*procCount].name,backgroundPrompt);
+            *procCount = *procCount+1;
+        }
+
         if(pid<0)
         {
-            errorPrompt();
-            return;
+            //errorPrompt();
+            return FORKERR;
         }
-        addToAllFork(pid);
+
         if(pid == 0)
         {
             if(builtinCommand(args) == 0)
             {
                 args[argNum] = NULL;
                 execvp(args[0],args);
-                perror("");
+                errorCode = (int*) shmat(shmid,NULL,0);
+                *errorCode = errno;
+                shmdt(errorCode);
+                exit(0);
             }
-            exit(0);
+            else
+            {
+                exit(0);
+            }
         }
         else
         {
-            waitpid(pid,&tmpLoc,WUNTRACED);
+            if(*background == 1)
+            {
+                //signal(SIGCHLD,sigHandler_child);
+                waitpid(pid,&tmpLoc,WNOHANG);
+            }
+            else if (*background == 0)
+            {
+                waitpid(pid,&tmpLoc,WUNTRACED);
+            }
+
+            shmctl(shmid,IPC_STAT,&buf);
+            errorCode = (int*) shmat(shmid,NULL,0);
+            err = *errorCode;
+
+            shmdt(errorCode);
+            shmctl(shmid,IPC_RMID,NULL);
         }
-    } 
+    }
+
+    if(err != 0)
+    {
+        return COMMAND_NOT_FOUND;
+    }
+    else
+    {
+        return inputState;
+    }
+
 }

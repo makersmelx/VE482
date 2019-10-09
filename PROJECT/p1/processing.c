@@ -1,5 +1,48 @@
 #include "shell.h"
-int process(int inputState,char** args,char*filePath,int *argNum,int pipeExist,redirect_t* pipeRedirect,int pipeNum)
+
+void glbInit()
+{
+    ctrlC = malloc(sizeof(int));
+    *ctrlC = 0;
+    background = malloc(sizeof(int));
+    *background = 0;
+    procCount = malloc(sizeof(int));
+    *procCount = 0;
+    backgroundPrompt = malloc(sizeof(char)*MAXLINE);
+    crossLine = malloc(sizeof(int));
+    *crossLine = 0;
+
+    tmpfp.in = 0;
+    tmpfp.out = 0;
+    tmpfp.inUse = 0;
+    tmpfp.inFile = malloc(sizeof(char)*MAXLINE);
+    tmpfp.outFile = malloc(sizeof(char)*MAXLINE);
+
+}
+void glbFree()
+{
+    free(ctrlC);
+    free(background);
+    free(procCount);
+    free(backgroundPrompt);
+    free(crossLine);
+    free(tmpfp.inFile);
+    free(tmpfp.outFile);
+}
+
+void errorFlush()
+{
+    char* errTmp = malloc(sizeof(char)*MAXLINE);
+    char c = '\0';
+    if((c = getchar())!= EOF )
+    {
+        scanf("%[^\n]",errTmp);
+    }
+    free(errTmp);
+}
+
+
+int process(int inputState,char** args,char*filePath,int *argNum,int pipeExist,redirect_t* pipeRedirect,int pipeNum,int* inSet,int* outSet)
 {
     if (inputState == PROCESSING)
     {
@@ -27,12 +70,11 @@ int process(int inputState,char** args,char*filePath,int *argNum,int pipeExist,r
         else if ((inputState == PROCESSING && pipeExist == 0) || inputState == END_OF_LINE)
             //No direction, directly execute
         {
-            //print_prompt(promptFlag);
-            execute(args,*argNum);
-            if(allFork->sigStatus == SIGINT )
+            if(tmpfp.inUse == 1)
             {
-                return END_OF_LINE;
+                redirection_t(&tmpfp);
             }
+            inputState = execute(args,*argNum,inputState);
         }
         else
             //redirection && PIPE situation
@@ -48,15 +90,14 @@ int process(int inputState,char** args,char*filePath,int *argNum,int pipeExist,r
         //redirection situation
     {
         
-        inputState = redirection(inputState, filePath,pipeExist,pipeRedirect,pipeNum);
+        inputState = redirection(inputState, filePath,pipeExist,pipeRedirect,pipeNum,inSet,outSet);
         if (inputState == END_OF_LINE && pipeExist == 0)
         {
-            //print_prompt(promptFlag);
-            execute(args,*argNum);
-            if(allFork->sigStatus == SIGINT )
+            if(*crossLine)
             {
-                return END_OF_LINE;
+                redirection_t(&tmpfp);
             }
+            inputState = execute(args,*argNum,inputState);
         }
         else if (inputState == END_OF_LINE && pipeExist == 1)
         {
@@ -71,18 +112,32 @@ void loopProcess()
 {
     while (1)
     {
-        int *promptFlag = malloc(sizeof(int));
-        *promptFlag = 0;
-        print_prompt(promptFlag);
-
         int inputState = PROCESSING;
+        int *promptFlag = malloc(sizeof(int));
+        *promptFlag = (*background == 1)? 1:0;
+        *ctrlC = 0;
+
+        free(background);
+        background = malloc(sizeof(int));
+        *background = 0;
+        *crossLine = 0;
+        tmpfp.in = 0;
+        tmpfp.out = 0;
+        tmpfp.inUse = 0;
+//        free(backgroundPrompt);
+//        backgroundPrompt = malloc(sizeof(char)*MAXLINE);
+        strclear(backgroundPrompt,MAXLINE);
 
         char **args = malloc(sizeof(char *) * (MAXARGS + 2));
         int argNum = 0;
 
         int stdiFD = dup(0);
         int stdoFD = dup(1);
-        char *filePath = malloc(sizeof(char) * (MAXLINE + 1));
+        char *filePath = malloc(sizeof(char) * (MAXLINE));
+        int *inSet = malloc(sizeof(int));
+        int *outSet = malloc(sizeof(int));
+        *inSet = 0;
+        *outSet = 0;
         
         redirect_t *pipeRedirect = malloc(sizeof(redirect_t)*MAX_PIPE);
         for(int i = 0 ; i< MAX_PIPE;i++)
@@ -90,11 +145,9 @@ void loopProcess()
             pipeRedirect[i].in = 0;
             pipeRedirect[i].out = 0;
             pipeRedirect[i].inUse = 0;
-            pipeRedirect[i].inFile = malloc(sizeof(char) * (MAXLINE+1));
-            pipeRedirect[i].outFile = malloc(sizeof(char )*(MAXLINE+1));
+            pipeRedirect[i].inFile = malloc(sizeof(char) * (MAXLINE));
+            pipeRedirect[i].outFile = malloc(sizeof(char )*(MAXLINE));
         }
-
-       
 
         int **pipeFd = malloc(sizeof(int *) * MAX_PIPE);
         for(int i = 0 ; i < MAX_PIPE;i++)
@@ -105,11 +158,15 @@ void loopProcess()
         int pipeExist = 0;
         int pipeMark[MAX_PIPE+1]={0};//marks the loc that stores each command
 
+
+
+        print_prompt(promptFlag);
+
         while(inputState != END_OF_LINE && inputState != PIPE_END_OF_LINE)
         {
             do
             {
-                inputState = process(inputState,args,filePath,&argNum,pipeExist,pipeRedirect,pipeNum);
+                inputState = process(inputState,args,filePath,&argNum,pipeExist,pipeRedirect,pipeNum,inSet,outSet);
                 if(inputState < PROCESSING)
                     //ERROR occurs
                 {
@@ -119,7 +176,7 @@ void loopProcess()
             if(inputState < PROCESSING)
             //error
             {
-                printf("There is an error.\n");
+
                 break;
             }
             else if(inputState == EXIT)
@@ -128,49 +185,63 @@ void loopProcess()
             }
             else if (inputState == PIPE)
             {
+                if(argNum == pipeMark[pipeNum])
+                {
+                    inputState = MISSING_PROGRAM;
+                    errorFlush();
+                    break;
+                }
+                else if(pipeRedirect[pipeNum].in == 1 && pipeNum != 0)
+                {
+                    inputState = DUPLICATED_INPUT;
+                    errorFlush();
+                    break;
+                }
+
+                else if(pipeRedirect[pipeNum].out == 1)
+                {
+                    inputState = DUPLICATED_OUTPUT;
+                    errorFlush();
+                    break;
+                }
                 pipeExist = 1;
                 char *space = malloc(sizeof(char) * MAXLINE);
+                strclear(space,MAXLINE);
                 scanf("%[ ]", space);
+                strcat(backgroundPrompt,space);
                 free(space);
                 char end = getc(stdin);
                 if(end == '\n')
                 {
-                    inputState = PARSEERR;
-                    break;
-                }
-                else if(end == '|')
-                {
-                    printf("error: missing program\n");
-                    break;
+                    prompt_any("> ");
                 }
                 else
                 {
                     ungetc(end, stdin);
-                    pipeNum++;
-                    pipeMark[pipeNum] = argNum;
-                    inputState = PROCESSING;
-                }  
+                }
+                pipeNum++;
+                pipeMark[pipeNum] = argNum;
+                inputState = PROCESSING;
+
             }
             else if (inputState == PIPE_END_OF_LINE)
             {
-                //redirection_t(pipeRedirect);
+                if(pipeRedirect[pipeNum].in == 1 && pipeNum != 0)
+                {
+                    inputState = DUPLICATED_INPUT;
+                    break;
+                }
                 pipeMark[pipeNum + 1] = argNum;
                 inputState = myPipe(pipeFd, pipeMark, args, pipeNum,pipeRedirect);
             }
             if(inputState < PROCESSING)
             //error
             {
-                printf("There is an error.\n");
                 break;
             }
         }
 
-        resetFork();
-        for (int i = 0; i < MAXARGS + 2 && i != argNum; i++)
-        {
-            free(args[i]);
-        }
-        free(args);
+
 
         for(int i = 0 ; i < MAX_PIPE;i++)
         {
@@ -183,24 +254,48 @@ void loopProcess()
             free(pipeRedirect[i].inFile);
             free(pipeRedirect[i].outFile);
         }
-
         free(pipeRedirect);
 
-        free(filePath);
-        free(promptFlag);
-        fflush(stdin);
-        fflush(stdout);
         dup2(stdiFD, 0);
         dup2(stdoFD, 1);
         close(stdiFD);
         close(stdoFD);
+
+        //printf("%s\n",filePath);
+
+        if(inputState < PROCESSING)
+        {
+            if(inputState == COMMAND_NOT_FOUND)
+            {
+                errorPrompt(inputState,args[0]);
+            }
+            else if(inputState < PIPE_CMD_NOT_FOUND)
+            {
+                //printf("%d\n",PIPE_CMD_NOT_FOUND-inputState);
+                errorPrompt(inputState,args[PIPE_CMD_NOT_FOUND-inputState]);
+            }
+            else
+            {
+                errorPrompt(inputState,filePath);
+            }
+            setbuf(stdin, NULL);
+        }
+
+        for (int i = 0; i < MAXARGS + 2 && i != argNum; i++)
+        {
+            free(args[i]);
+        }
+        free(args);
+        free(filePath);
+        free(promptFlag);
+        free(inSet);
+        free(outSet);
+
         if(inputState == EXIT)
         {
             printExit();
-            free(allFork);
-            exit(0);
+            return;
         }
-
     }
 }
 

@@ -19,9 +19,42 @@ void pipeTest(redirect_t r,int stdIn,int stdOut)
 #endif
 int myPipe(int** pipeFd,int* pipeMark,char** args,int pipeNum,redirect_t* pipeRedirect)
 {
+    if(*background == 1)
+    {
+        signal(SIGCHLD,SIG_DFL);
+        pid_t pid;
+        pid = fork();
+        if (pid < 0)
+        {
+            printf("Fork error.\n");
+        }
+        else if (pid == 0)
+        {
+            printf("[%d] %s\n",*procCount+1,backgroundPrompt);
+            exit(0);
+        }
+        else
+        {
+            if(*background == 1)
+            {
+                prompt_any("mumsh $ ");
+            }
+            wait(NULL);
+        }
+
+        //signal(SIGCHLD,sigHandler_child);
+    }
+    int tmpIndex = 0;
     int procIndex = 0;
     int tmpLoc = 0;
+    int count = 0;
     pid_t pid = 0,wpid = 0;
+
+    int shmid = shmget(IPC_PRIVATE,MAXLINE,IPC_CREAT | 0600);
+    struct shmid_ds buf;
+    int* errorCode = NULL;
+    int err = 0;
+
     for (int pipeIndex = 0; pipeIndex < pipeNum;pipeIndex++)
     {
         int pipeTmp = pipe(pipeFd[pipeIndex]);
@@ -32,7 +65,6 @@ int myPipe(int** pipeFd,int* pipeMark,char** args,int pipeNum,redirect_t* pipeRe
                 close(pipeFd[i][0]);
                 close(pipeFd[i][1]);
             }
-            errorPrompt();
             return PIPEERR;
         }
     }
@@ -41,12 +73,21 @@ int myPipe(int** pipeFd,int* pipeMark,char** args,int pipeNum,redirect_t* pipeRe
     {
         if ((pid =fork())== 0)
         {
-            addToAllFork(pid);
+            if(*background == 1)
+            {
+                if(procIndex == 0)
+                {
+                    tmpIndex = pid;
+                    PROCTABLE[*procCount].pid = pid;
+                    strcpy(PROCTABLE[*procCount].name,backgroundPrompt);
+                    *procCount = *procCount+1;
+                }
+            }
+
             break;
         }
         else if (pid < 0)
         {
-            errorPrompt();
             for (int i = 0; i < pipeNum; i++)
             {
                 close(pipeFd[i][0]);
@@ -68,7 +109,7 @@ int myPipe(int** pipeFd,int* pipeMark,char** args,int pipeNum,redirect_t* pipeRe
         close(pipeFd[procIndex][0]);
         dup2(pipeFd[procIndex][1], STDOUT_FILENO);
         redirection_t(pipeRedirect+procIndex);
-        cpyArgsExec(procIndex, pipeMark, args);
+        cpyArgsExec(procIndex, pipeMark, args,shmid,errorCode);
     }
     else if (procIndex == procNum - 1)
     {
@@ -87,7 +128,7 @@ int myPipe(int** pipeFd,int* pipeMark,char** args,int pipeNum,redirect_t* pipeRe
         close(pipeFd[procIndex - 1][1]);
         dup2(pipeFd[procIndex - 1][0], STDIN_FILENO);
         redirection_t(pipeRedirect+procIndex);
-        cpyArgsExec(procIndex, pipeMark, args);
+        cpyArgsExec(procIndex, pipeMark, args,shmid,errorCode);
     }
     else if (procNum > 2 && procIndex > 0 && procIndex < procNum-1)
     {
@@ -108,22 +149,45 @@ int myPipe(int** pipeFd,int* pipeMark,char** args,int pipeNum,redirect_t* pipeRe
         dup2(pipeFd[procIndex - 1][0], 0);
         dup2(pipeFd[procIndex][1], 1);
         redirection_t(pipeRedirect+procIndex);
-        cpyArgsExec(procIndex, pipeMark, args);
+        cpyArgsExec(procIndex, pipeMark, args,shmid,errorCode);
     }
     else
     {
+
         for (int i = 0; i < pipeNum; i++)
         {
             close(pipeFd[i][0]);
             close(pipeFd[i][1]);
         }
-        while((wpid = waitpid(-1,&tmpLoc,WNOHANG)) != -1)
+        if(*background == 0)
         {
-            if(wpid > 0)
+            while((wpid = waitpid(-1,&tmpLoc,WNOHANG)) != -1)
             {
-                tmpLoc = 0;
+                if(wpid > 0)
+                {
+                    count++;
+                }
+
             }
         }
+        else if(*background == 1)
+        {
+            waitpid(tmpIndex,NULL,WNOHANG);
+
+        }
+        shmctl(shmid,IPC_STAT,&buf);
+        errorCode = (int*) shmat(shmid,NULL,0);
+        err = *errorCode;
+        shmdt(errorCode);
+        shmctl(shmid,IPC_RMID,NULL);
+
     }
+
+    if((err % 1000) != 0)
+    {
+        return PIPE_CMD_NOT_FOUND - pipeMark[err/1000];
+    }
+
     return PIPE_END_OF_LINE;
+
 }
