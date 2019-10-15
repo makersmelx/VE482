@@ -24,6 +24,14 @@ POSIX includes such things:
 
 ## 3. C programming
 
+See /src
+
+Use in terminal the shell script to test all steps.
+
+~~~shell
+./app.sh
+~~~
+
 ## Reference
 
 Information technology — Portable Operating System Interface (POSIX®) Base Specifications, Issue 7, www.iso.org/standard/50516.html
