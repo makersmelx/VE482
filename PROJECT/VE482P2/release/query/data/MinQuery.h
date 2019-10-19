@@ -7,10 +7,15 @@
 
 #include "../Query.h"
 
-
-class MinQuery {
-
+class MinQuery: public ComplexQuery{
+    static constexpr const char *qname = "MIN";
+    std::vector<Table::ValueType> _MIN;
+public:
+    using ComplexQuery::ComplexQuery;
+    QueryResult::Ptr execute() override;
+    std::string toString() override;
 };
+
 
 
 #endif //LEMONDB_MINQUERY_H

@@ -7,8 +7,6 @@
 
 #include <iostream>
 #include <cstdlib>
-//#define DEBUG
-//#define NOTDONE
 constexpr const char *MaxQuery::qname;
 
 QueryResult::Ptr MaxQuery::execute() {
@@ -16,38 +14,35 @@ QueryResult::Ptr MaxQuery::execute() {
     Database &db = Database::getInstance();
     try {
         auto &table = db[this->targetTable];
-#ifdef DEBUG
-        cout << "DEBUG:\n";
-        cout << this->operands[0]<<endl;
-        cout << (this->operands).size()<<endl;
-        cout << table.field()[1];
-        cout << endl;
-#endif
-#ifndef NOTDONE
-        for(const auto &str : this->operands)
+        auto result = initCondition(table);
+        if(result.second)
         {
-            for(unsigned long i = 0;i < table.field().size();i++)
+            for(const auto &str : this->operands)
             {
-                if(table.field()[i] == str)
+                for(unsigned long i = 0;i < table.field().size();i++)
                 {
-                    Table::ValueType max = INT32_MIN;
-                    for(Table::Iterator itr = table.begin();itr!=table.end();itr++)
+                    if(table.field()[i] == str)
                     {
-                        Table::ValueType &tmp = itr->get(i);
-                        //cout << "NM$L" << tmp << endl;
-                        if(tmp > max)
+                        Table::ValueType max = INT32_MIN;
+                        for(auto itr = table.begin();itr!=table.end();itr++)
                         {
-                            max = tmp;
+                            if(this->evalCondition(*itr))
+                            {
+                                Table::ValueType &tmp = itr->get(i);
+                                if(tmp > max)
+                                {
+                                    max = tmp;
+                                }
+                            }
+
                         }
+                        _MAX.push_back(max);
+                        break;
                     }
-                    _MAX.push_back(max);
-                    break;
                 }
             }
+            cout << this->toString() << endl;
         }
-        cout << this->toString() << endl;
-#endif
-
         return make_unique<SuccessMsgResult>(qname, this->targetTable);
     }
     catch (const TableNameNotFound &e) {
