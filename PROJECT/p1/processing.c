@@ -4,11 +4,15 @@ void glbInit()
 {
     ctrlC = malloc(sizeof(int));
     *ctrlC = 0;
+
     background = malloc(sizeof(int));
     *background = 0;
+
     procCount = malloc(sizeof(int));
     *procCount = 0;
+
     backgroundPrompt = malloc(sizeof(char)*MAXLINE);
+
     crossLine = malloc(sizeof(int));
     *crossLine = 0;
 
@@ -49,17 +53,13 @@ int process(int inputState,char** args,char*filePath,int *argNum,int pipeExist,r
         inputState = read_command(args, argNum);
         if (inputState == EXIT)
         {
-            //print_prompt(promptFlag);
-            
             return EXIT;
         }
         if(inputState < 0)
-        //Error
         {
             return inputState;
         }
         else if (inputState == END_OF_LINE && *argNum == 0)
-            //Blank line
         {
             return END_OF_LINE;
         }
@@ -121,11 +121,10 @@ void loopProcess()
         background = malloc(sizeof(int));
         *background = 0;
         *crossLine = 0;
+
         tmpfp.in = 0;
         tmpfp.out = 0;
         tmpfp.inUse = 0;
-//        free(backgroundPrompt);
-//        backgroundPrompt = malloc(sizeof(char)*MAXLINE);
         strclear(backgroundPrompt,MAXLINE);
 
         char **args = malloc(sizeof(char *) * (MAXARGS + 2));
@@ -134,6 +133,7 @@ void loopProcess()
         int stdiFD = dup(0);
         int stdoFD = dup(1);
         char *filePath = malloc(sizeof(char) * (MAXLINE));
+
         int *inSet = malloc(sizeof(int));
         int *outSet = malloc(sizeof(int));
         *inSet = 0;
@@ -261,8 +261,6 @@ void loopProcess()
         close(stdiFD);
         close(stdoFD);
 
-        //printf("%s\n",filePath);
-
         if(inputState < PROCESSING)
         {
             if(inputState == COMMAND_NOT_FOUND)
@@ -271,7 +269,6 @@ void loopProcess()
             }
             else if(inputState < PIPE_CMD_NOT_FOUND)
             {
-                //printf("%d\n",PIPE_CMD_NOT_FOUND-inputState);
                 errorPrompt(inputState,args[PIPE_CMD_NOT_FOUND-inputState]);
             }
             else

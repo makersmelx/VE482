@@ -9,4 +9,7 @@ typedef struct redirect_storage
     char *outFile;
     int inUse;
 } redirect_t;
+
+redirect_t tmpfp;
+
 #endif

@@ -14,7 +14,6 @@ void redirection_t(redirect_t *r)
         {
             dup2(iFD, STDIN_FILENO);
         }
-        //error cond to be filled
         close(iFD);
     }
     if(r->out  == SINGLE_RIGHT_REDIRECTION)
@@ -25,7 +24,6 @@ void redirection_t(redirect_t *r)
         {
             dup2(oFD, STDOUT_FILENO);
         }
-        //error cond to be filled
         close(oFD);
     }
     else if (r->out == DOUBLE_RIGHT_REDIRECTION)
@@ -87,12 +85,6 @@ int redirection(int state, char *filePath,int pipeExist,redirect_t* pipeRedirect
             {
                 prompt_any("> ");
                 *crossLine = 1;
-//                while(end == '\n')
-//                {
-//                    prompt_any("> ");
-//                    scanf("%c",&end);
-//                }
-//                ungetc(end,stdin);
             }
             else if(end != '\n')
             {
@@ -111,65 +103,6 @@ int redirection(int state, char *filePath,int pipeExist,redirect_t* pipeRedirect
             ungetc(commaTmp,stdin);
             break;
         }
-
-//        if(commaTmp == '<' || commaTmp == '>')
-//        {
-//            if(state == SINGLE_LEFT_REDIRECTION && (commaTmp == '<'))
-//            {
-//                errorFlush();
-//                return SYNTAX_ERROR;
-//            }
-//            else if ((state == SINGLE_RIGHT_REDIRECTION || state == DOUBLE_RIGHT_REDIRECTION) && (commaTmp == '>'))
-//            {
-//                errorFlush();
-//                return SYNTAX_ERROR;
-//            }
-//            else
-//            {
-//                char c = getc(stdin);
-//                if(c=='\n')
-//                {
-//                    prompt_any("> ");
-//                    *crossLine = 1;
-//                    if(commaTmp == '<')
-//                    {
-//                        strcat(backgroundPrompt,"<");
-//                        return SINGLE_LEFT_REDIRECTION;
-//                    }
-//                    else if (commaTmp =='>')
-//                    {
-//                        strcat(backgroundPrompt,">");
-//                        return SINGLE_RIGHT_REDIRECTION;
-//                    }
-//                }
-//                else if(commaTmp == '>' && c== '>')
-//                {
-//                    char tmp = getc(stdin);
-//                    if(tmp == '\n')
-//                    {
-//                        prompt_any("> ");
-//                        *crossLine = 1;
-//                        strcat(backgroundPrompt,">>");
-//                        return DOUBLE_RIGHT_REDIRECTION;
-//                    }
-//                    else
-//                    {
-//                        ungetc(tmp,stdin);
-//                    }
-//                }
-//                else
-//                {
-//                    ungetc(c,stdin);
-//                }
-//                break;
-//            }
-//        }
-//        if (commaTmp == ' ' || commaTmp == '\n' || commaTmp == '|')
-//        {
-//            //ungetc(end,stdin);
-//            break;
-//        }
-
     }
 
 

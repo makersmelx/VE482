@@ -39,8 +39,6 @@ int execute(char **args, int argNum,int inputState)
             }
 
         }
-
-        //signal(SIGCHLD,SIG_DFL);
         pid_t pid;
         pid = fork();
         if (pid < 0)
@@ -54,7 +52,6 @@ int execute(char **args, int argNum,int inputState)
         }
         else
         {
-            //printf("CHeck: %d",*background);
             if(*background == 1)
             {
                 prompt_any("mumsh $ ");
@@ -85,7 +82,6 @@ int execute(char **args, int argNum,int inputState)
 
         if(pid<0)
         {
-            //errorPrompt();
             return FORKERR;
         }
 
@@ -109,7 +105,6 @@ int execute(char **args, int argNum,int inputState)
         {
             if(*background == 1)
             {
-                //signal(SIGCHLD,sigHandler_child);
                 waitpid(pid,&tmpLoc,WNOHANG);
             }
             else if (*background == 0)

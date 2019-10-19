@@ -2,9 +2,7 @@
 
 void catToBGPrompt(char* str)
 {
-
     strcat(backgroundPrompt,str);
-
 }
 
 void strclear(char* vic, int size)
@@ -157,8 +155,10 @@ int read_command(char **args, int *argNum)
                 strclear(space,MAXLINE);
                 scanf("%[ ]",space);
                 catToBGPrompt(space);
+
                 scanf("%[^><|\n\'\"& ]", buffer);
                 catToBGPrompt(buffer);
+
                 free(space);
             }
             commaTmp = getc(stdin);
@@ -200,8 +200,6 @@ int read_command(char **args, int *argNum)
             strcat(backgroundPrompt," ");
         }
 
-
-
         if (!strcmp(buffer, "exit"))
         {
             if(*argNum < 1)
@@ -209,7 +207,6 @@ int read_command(char **args, int *argNum)
                 free(buffer);
                 return EXIT;
             }
-
         }
 
         if(buffer[0]!='\0')

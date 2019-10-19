@@ -22,12 +22,12 @@
 #include "running_code.h"
 #include "redirect_t.h"
 #include "proc.h"
+/*======================*
+     Global Variables
+ *======================*/
 int* ctrlC;
 int* background;
 char* backgroundPrompt;
-int* command;
-int *procCount;
-int *procCount_storage;
 int *crossLine;
 
 typedef struct FilePath
@@ -37,10 +37,6 @@ typedef struct FilePath
     int used;
 }gl_fp;
 
-redirect_t tmpfp;
-myProc PROCTABLE[MAX_PIPE+1];
-//int* exeError;
-//#define DEBUG
 
 /*======================================*
                processing.c
@@ -96,9 +92,5 @@ void sigHandler_C();
                pipe.c
  *======================================*/
 int myPipe(int**,int*,char**,int,redirect_t*);
-#ifdef DEBUG
-void pipeTest(redirect_t, int, int);
-#endif
-
 
 #endif

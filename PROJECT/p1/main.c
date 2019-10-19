@@ -9,6 +9,5 @@ int main()
     sigaction(SIGINT, &sa, NULL);
     loopProcess();
     glbFree();
-    //free(exeError);
     exit(0);
 }

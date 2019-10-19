@@ -1,28 +1,5 @@
 #include "shell.h"
 
-//static void getLine(char* str)
-//{
-//    scanf("%[^\n&]",str);
-//    char c = getc(stdin);
-//    if(c == '&')
-//    {
-//        char tmp = getc(stdin);
-//        if(tmp == '\n')
-//        {
-//            *background = 1;
-//        }
-//        ungetc(tmp,stdin);
-//        strcat(str," &");
-//    }
-//    ungetc(c,stdin);
-//
-//
-//    for(int i = strlen(str)-1;i>=0;i--)
-//    {
-//        ungetc(str[i],stdin);
-//    }
-//}
-
 void print_prompt(int* promptFlag)
 {
     if(*promptFlag == 0)

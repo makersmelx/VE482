@@ -8,4 +8,9 @@ typedef struct myStruct
     int done;
     char name[MAXLINE];
 }myProc;
+
+myProc PROCTABLE[MAX_PIPE+1];
+
+int *procCount;
+
 #endif //P1_PROC_H

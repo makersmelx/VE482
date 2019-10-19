@@ -41,15 +41,13 @@ int myPipe(int** pipeFd,int* pipeMark,char** args,int pipeNum,redirect_t* pipeRe
             }
             wait(NULL);
         }
-
-        //signal(SIGCHLD,sigHandler_child);
     }
     int tmpIndex = 0;
     int procIndex = 0;
     int tmpLoc = 0;
     int count = 0;
     pid_t pid = 0,wpid = 0;
-
+    // start a inter-proc communication
     int shmid = shmget(IPC_PRIVATE,MAXLINE,IPC_CREAT | 0600);
     struct shmid_ds buf;
     int* errorCode = NULL;

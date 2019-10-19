@@ -11,7 +11,6 @@ int builtinCommand(char** args)
     {
         for(int i = 0; i< *procCount;i++)
         {
-            //if(waitpid(PROCTABLE[i].pid,NULL,WNOHANG) == 0)
             if(PROCTABLE[i].done == 0)
             {
                 printf("[%d] running %s\n" ,i+1,PROCTABLE[i].name);
