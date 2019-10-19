@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <iostream>
+#include<cstring>
 #include <time.h>
 #define RAND_MY_MAX 114514
 using namespace std;

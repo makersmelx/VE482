@@ -17,9 +17,9 @@ POSIX includes such things:
 
 ## 2. General Questions
 
-1. Acutally, it is the programmer that writes the code to make all threads working in cooperation. Programmers make the thread voluntarily give up its CPU resources when the resources are considered not needed.
+1. Actually, it is the programmer that writes the code to make all threads working in cooperation. Programmers make the thread voluntarily give up its CPU resources when the resources are considered not needed.
 2.  The biggest advantage is the efficiency. No traps to the kernel are needed to switch threads. The biggest disadvantage is that if one thread blocks, the entire process blocks.
-3.  No,. For a single-threaded process, it cannot fork when waiting for keyboard input.
+3.  No. For a single-threaded process, it cannot fork when waiting for keyboard input.
 4. Such system calls will be changed into combination of Win 32 APIs or other codes.
 
 ## 3. C programming
@@ -35,4 +35,3 @@ Use in terminal the shell script to test all steps.
 ## Reference
 
 Information technology — Portable Operating System Interface (POSIX®) Base Specifications, Issue 7, www.iso.org/standard/50516.html
-
