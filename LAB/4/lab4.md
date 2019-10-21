@@ -106,9 +106,7 @@ CREATE TABLE db(
 
 Assume that all the items in databases are in the correct format as
 
-![image-20191020205730940](lab4.assets/image-20191020205730940.png)
-
-
+![](lab4.assets/image-20191020205730940.png)
 
 #### Who are the top five contributors to the Linux kernel since the beginning?
 
@@ -120,9 +118,13 @@ LIMIT 5;
 ~~~
 
 Linus Torvalds,28312
+
 David S. Miller,11975
+
 Mark Brown,7352
+
 Takashi Iwai,6965
+
 Arnd Bergmann,6893
 
 ### Who are the top five contributors to the Linux kernel for each year over the past five years?
@@ -135,9 +137,13 @@ LIMIT 5;
 ~~~
 
 Linus Torvalds,10635
+
 David S. Miller,5888
+
 Arnd Bergmann,4522
+
 Chris Wilson,3526
+
 Christoph Hellwig,3075
 
 ### What is the most common “commit subject”?
@@ -161,9 +167,13 @@ LIMIT 5;
 ~~~
 
    ,3967
+
 2008-01-30,1013
+
 2006-12-07,672
+
 2007-05-08,643
+
 2013-07-03,626
 
 The answer should be 2008-01-30. The first one should be some cases that there are two fields for author names.
