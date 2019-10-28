@@ -108,6 +108,8 @@ Assume that all the items in databases are in the correct format as
 
 ![](lab4.assets/image-20191020205730940.png)
 
+The number after the commas that follows the name is the times of apperance in database.
+
 #### Who are the top five contributors to the Linux kernel since the beginning?
 
 ~~~sqlite
@@ -129,22 +131,74 @@ Arnd Bergmann,6893
 
 ### Who are the top five contributors to the Linux kernel for each year over the past five years?
 
+Take this year as example. For other four years, use $'20XX-12-31'$
+
 ~~~sqlite
-SELECT NAME, count( * ) AS times FROM timestamp where TIME_ISO Between '2015-01-01' and date('now')
+SELECT NAME, count( * ) AS times FROM timestamp where TIME_ISO Between '2019-01-01' and date('now')
 GROUP BY NAME
 ORDER BY times DESC
 LIMIT 5;
 ~~~
 
-Linus Torvalds,10635
+**Year 2015:**
 
-David S. Miller,5888
+Linus Torvalds,2006
 
-Arnd Bergmann,4522
+David S. Miller,983
 
-Chris Wilson,3526
+H Hartley Sweeten,772
 
-Christoph Hellwig,3075
+Arnd Bergmann,736
+
+Geert Uytterhoeven,707
+
+**Year 2016:**
+
+Linus Torvalds,2273
+
+Arnd Bergmann,1185
+
+David S. Miller,1150
+
+Chris Wilson,988
+
+Mauro Carvalho Chehab,975
+
+**Year 2017:**
+
+Linus Torvalds,2288
+
+David S. Miller,1420
+
+Arnd Bergmann,1116
+
+Chris Wilson,1027
+
+Arvind Yadav,827
+
+**Year 2018:**
+
+Linus Torvalds,2163
+
+David S. Miller,1405
+
+Arnd Bergmann,893
+
+Christoph Hellwig,818
+
+Colin Ian King,797
+
+ **Year 2019: **
+
+Linus Torvalds,1878
+
+David S. Miller,925
+
+Thomas Gleixner,737
+
+YueHaibing,707
+
+Christoph Hellwig,684
 
 ### What is the most common “commit subject”?
 
@@ -155,7 +209,7 @@ ORDER BY times DESC
 LIMIT 1;
 ~~~
 
-Linux-2.6.12-rc2,28276
+Merge branch 'linus' of git://git.kernel.org/pub/scm/linux/kernel/git/herbert/crypto-2.6,28276
 
 #### On which day is the number of commits the highest?
 
