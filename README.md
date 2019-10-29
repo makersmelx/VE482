@@ -1,7 +1,5 @@
 # VE482 Course Work
 
-***
-
 ## Note
 
 This is the repository for course work and course material in VE482: Intro to Operating System in UM-SJTU Joint Institute.  Only work that has passed submission deadline will be uploaded at present.
