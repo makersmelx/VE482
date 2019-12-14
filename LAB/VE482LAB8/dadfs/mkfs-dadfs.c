@@ -166,7 +166,8 @@ int main(int argc, char *argv[])
 		.file_size = sizeof(welcomefile_body),
 	};
 	struct dadfs_dir_record record = {
-		.filename = "awordfromdad",
+		//.filename = "awordfromdad",
+		.filename = "dad",
 		.inode_no = WELCOMEFILE_INODE_NUMBER,
 	};
 

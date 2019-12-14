@@ -3,17 +3,18 @@
  *
  */
 
-#include <linux/blkdev.h>
-#include <linux/buffer_head.h>
-#include <linux/fs.h>
 #include <linux/init.h>
-#include <linux/jbd2.h>
 #include <linux/module.h>
+#include <linux/fs.h>
 #include <linux/namei.h>
-#include <linux/parser.h>
-#include <linux/random.h>
+#include <linux/buffer_head.h>
 #include <linux/slab.h>
+#include <linux/random.h>
 #include <linux/version.h>
+#include <linux/jbd2.h>
+#include <linux/parser.h>
+#include <linux/blkdev.h>
+#include<linux/uio.h>
 
 #include "sblock.h"
 
@@ -52,18 +53,17 @@ void dadfs_sb_sync(struct super_block *vsb)
 }
 
 struct dadfs_inode *dadfs_inode_search(struct super_block *sb,
-									   struct dadfs_inode *start,
-									   struct dadfs_inode *search)
+		struct dadfs_inode *start,
+		struct dadfs_inode *search)
 {
 	uint64_t count = 0;
-	while (start->inode_no != search->inode_no && count < DADFS_SB(sb)->inodes_count)
-	{
+	while (start->inode_no != search->inode_no
+			&& count < DADFS_SB(sb)->inodes_count) {
 		count++;
 		start++;
 	}
 
-	if (start->inode_no == search->inode_no)
-	{
+	if (start->inode_no == search->inode_no) {
 		return start;
 	}
 
@@ -76,8 +76,7 @@ void dadfs_inode_add(struct super_block *vsb, struct dadfs_inode *inode)
 	struct buffer_head *bh;
 	struct dadfs_inode *inode_iterator;
 
-	if (mutex_lock_interruptible(&dadfs_inodes_mgmt_lock))
-	{
+	if (mutex_lock_interruptible(&dadfs_inodes_mgmt_lock)) {
 		sfs_trace("Failed to acquire mutex lock\n");
 		return;
 	}
@@ -87,8 +86,7 @@ void dadfs_inode_add(struct super_block *vsb, struct dadfs_inode *inode)
 
 	inode_iterator = (struct dadfs_inode *)bh->b_data;
 
-	if (mutex_lock_interruptible(&dadfs_sb_lock))
-	{
+	if (mutex_lock_interruptible(&dadfs_sb_lock)) {
 		sfs_trace("Failed to acquire mutex lock\n");
 		return;
 	}
@@ -115,14 +113,13 @@ void dadfs_inode_add(struct super_block *vsb, struct dadfs_inode *inode)
  *
  * If for some reason, the file creation/deletion failed, the block number
  * will still be marked as non-free. You need fsck to fix this.*/
-int dadfs_sb_get_a_freeblock(struct super_block *vsb, uint64_t *out)
+int dadfs_sb_get_a_freeblock(struct super_block *vsb, uint64_t * out)
 {
 	struct dadfs_super_block *sb = DADFS_SB(vsb);
 	int i;
 	int ret = 0;
 
-	if (mutex_lock_interruptible(&dadfs_sb_lock))
-	{
+	if (mutex_lock_interruptible(&dadfs_sb_lock)) {
 		sfs_trace("Failed to acquire mutex lock\n");
 		ret = -EINTR;
 		goto end;
@@ -130,16 +127,13 @@ int dadfs_sb_get_a_freeblock(struct super_block *vsb, uint64_t *out)
 
 	/* Loop until we find a free block. We start the loop from 3,
 	 * as all prior blocks will always be in use */
-	for (i = 3; i < DADFS_MAX_FILESYSTEM_OBJECTS_SUPPORTED; i++)
-	{
-		if (sb->free_blocks & (1 << i))
-		{
+	for (i = 3; i < DADFS_MAX_FILESYSTEM_OBJECTS_SUPPORTED; i++) {
+		if (sb->free_blocks & (1 << i)) {
 			break;
 		}
 	}
 
-	if (unlikely(i == DADFS_MAX_FILESYSTEM_OBJECTS_SUPPORTED))
-	{
+	if (unlikely(i == DADFS_MAX_FILESYSTEM_OBJECTS_SUPPORTED)) {
 		printk(KERN_ERR "No more free blocks available");
 		ret = -ENOSPC;
 		goto end;
@@ -158,12 +152,11 @@ end:
 }
 
 static int dadfs_sb_get_objects_count(struct super_block *vsb,
-									  uint64_t *out)
+					 uint64_t * out)
 {
 	struct dadfs_super_block *sb = DADFS_SB(vsb);
 
-	if (mutex_lock_interruptible(&dadfs_inodes_mgmt_lock))
-	{
+	if (mutex_lock_interruptible(&dadfs_inodes_mgmt_lock)) {
 		sfs_trace("Failed to acquire mutex lock\n");
 		return -EINTR;
 	}
@@ -195,8 +188,7 @@ static int dadfs_readdir(struct file *filp, void *dirent, filldir_t filldir)
 	inode = filp->f_dentry->d_inode;
 	sb = inode->i_sb;
 
-	if (pos)
-	{
+	if (pos) {
 		/* FIXME: We use a hack of reading pos to figure if we have filled in all data.
 		 * We should probably fix this to work in a cursor based model and
 		 * use the tokens correctly to not fill too many data in each cursor based call */
@@ -205,12 +197,11 @@ static int dadfs_readdir(struct file *filp, void *dirent, filldir_t filldir)
 
 	sfs_inode = DADFS_INODE(inode);
 
-	if (unlikely(!S_ISDIR(sfs_inode->mode)))
-	{
+	if (unlikely(!S_ISDIR(sfs_inode->mode))) {
 		printk(KERN_ERR
-			   "inode [%llu][%lu] for fs object [%s] not a directory\n",
-			   sfs_inode->inode_no, inode->i_ino,
-			   filp->f_dentry->d_name.name);
+		       "inode [%llu][%lu] for fs object [%s] not a directory\n",
+		       sfs_inode->inode_no, inode->i_ino,
+		       filp->f_dentry->d_name.name);
 		return -ENOTDIR;
 	}
 
@@ -218,15 +209,14 @@ static int dadfs_readdir(struct file *filp, void *dirent, filldir_t filldir)
 	BUG_ON(!bh);
 
 	record = (struct dadfs_dir_record *)bh->b_data;
-	for (i = 0; i < sfs_inode->dir_children_count; i++)
-	{
+	for (i = 0; i < sfs_inode->dir_children_count; i++) {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 11, 0)
 		dir_emit(ctx, record->filename, DADFS_FILENAME_MAXLEN,
-				 record->inode_no, DT_UNKNOWN);
+			record->inode_no, DT_UNKNOWN);
 		ctx->pos += sizeof(struct dadfs_dir_record);
 #else
 		filldir(dirent, record->filename, DADFS_FILENAME_MAXLEN, pos,
-				record->inode_no, DT_UNKNOWN);
+			record->inode_no, DT_UNKNOWN);
 		filp->f_pos += sizeof(struct dadfs_dir_record);
 #endif
 		pos += sizeof(struct dadfs_dir_record);
@@ -240,7 +230,7 @@ static int dadfs_readdir(struct file *filp, void *dirent, filldir_t filldir)
 /* This functions returns a dadfs_inode with the given inode_no
  * from the inode store, if it exists. */
 struct dadfs_inode *dadfs_get_inode(struct super_block *sb,
-									uint64_t inode_no)
+					  uint64_t inode_no)
 {
 	struct dadfs_super_block *sfs_sb = DADFS_SB(sb);
 	struct dadfs_inode *sfs_inode = NULL;
@@ -264,10 +254,8 @@ struct dadfs_inode *dadfs_get_inode(struct super_block *sb,
 		return NULL;
 	}
 #endif
-	for (i = 0; i < sfs_sb->inodes_count; i++)
-	{
-		if (sfs_inode->inode_no == inode_no)
-		{
+	for (i = 0; i < sfs_sb->inodes_count; i++) {
+		if (sfs_inode->inode_no == inode_no) {
 			inode_buffer = kmem_cache_alloc(sfs_inode_cachep, GFP_KERNEL);
 			memcpy(inode_buffer, sfs_inode, sizeof(*inode_buffer));
 
@@ -275,55 +263,68 @@ struct dadfs_inode *dadfs_get_inode(struct super_block *sb,
 		}
 		sfs_inode++;
 	}
-	//      mutex_unlock(&dadfs_inodes_mgmt_lock);
+//      mutex_unlock(&dadfs_inodes_mgmt_lock);
 
 	brelse(bh);
 	return inode_buffer;
 }
-
-ssize_t dadfs_read(struct file *filp, char __user *buf, size_t len,
-				   loff_t *ppos)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3,11,0)
+ssize_t dadfs_read(struct file * filp, char __user * buf, size_t len,
+		      loff_t * ppos)
+#else
+ssize_t dadfs_read(struct kiocb *kiocb, struct iov_iter *to)
+#endif
 {
 	/* After the commit dd37978c5 in the upstream linux kernel,
 	 * we can use just filp->f_inode instead of the
 	 * f->f_path.dentry->d_inode redirection */
-	struct dadfs_inode *inode =
-		DADFS_INODE(filp->f_path.dentry->d_inode);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,11,0)
+	struct file* filp = kiocb->ki_filp;
+	loff_t *ppos = &(kiocb->ki_pos);
+	size_t len = iov_iter_count(to);
+// 	char __user * buf = kiocb->(__user*)(ki_buf);
+#endif
+	
+
+	struct dadfs_inode *inode =DADFS_INODE(filp->f_path.dentry->d_inode);
 	struct buffer_head *bh;
 
 	char *buffer;
 	int nbytes;
 
-	if (*ppos >= inode->file_size)
-	{
+
+	if (*ppos >= inode->file_size) {
 		/* Read request with offset beyond the filesize */
 		return 0;
 	}
 
 	bh = sb_bread(filp->f_path.dentry->d_inode->i_sb,
-				  inode->data_block_number);
+					    inode->data_block_number);
 
-	if (!bh)
-	{
+	if (!bh) {
 		printk(KERN_ERR "Reading the block number [%llu] failed.",
-			   inode->data_block_number);
+		       inode->data_block_number);
 		return 0;
 	}
 
 	buffer = (char *)bh->b_data;
-	nbytes = min((size_t)inode->file_size, len);
-
-	if (copy_to_user(buf, buffer, nbytes))
+	nbytes = min((size_t) inode->file_size, len);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3,11,0)
+	if (copy_to_user(buf, buffer, nbytes)) 
+#else
+	if(!copy_to_iter(buffer,len,to))
+#endif
 	{
 		brelse(bh);
 		printk(KERN_ERR
-			   "Error copying file contents to the userspace buffer\n");
+		       "Error copying file contents to the userspace buffer\n");
 		return -EFAULT;
 	}
 
 	brelse(bh);
 
 	*ppos += nbytes;
+
 
 	return nbytes;
 }
@@ -337,29 +338,25 @@ int dadfs_inode_save(struct super_block *sb, struct dadfs_inode *sfs_inode)
 	bh = sb_bread(sb, DADFS_INODESTORE_BLOCK_NUMBER);
 	BUG_ON(!bh);
 
-	if (mutex_lock_interruptible(&dadfs_sb_lock))
-	{
+	if (mutex_lock_interruptible(&dadfs_sb_lock)) {
 		sfs_trace("Failed to acquire mutex lock\n");
 		return -EINTR;
 	}
 
 	inode_iterator = dadfs_inode_search(sb,
-										(struct dadfs_inode *)bh->b_data,
-										sfs_inode);
+		(struct dadfs_inode *)bh->b_data,
+		sfs_inode);
 
-	if (likely(inode_iterator))
-	{
+	if (likely(inode_iterator)) {
 		memcpy(inode_iterator, sfs_inode, sizeof(*inode_iterator));
 		printk(KERN_INFO "The inode updated\n");
 
 		mark_buffer_dirty(bh);
 		sync_dirty_buffer(bh);
-	}
-	else
-	{
+	} else {
 		mutex_unlock(&dadfs_sb_lock);
 		printk(KERN_ERR
-			   "The new filesize could not be stored to the inode.");
+		       "The new filesize could not be stored to the inode.");
 		return -EIO;
 	}
 
@@ -372,7 +369,12 @@ int dadfs_inode_save(struct super_block *sb, struct dadfs_inode *sfs_inode)
 
 /* FIXME: The write support is rudimentary. I have not figured out a way to do writes
  * from particular offsets (even though I have written some untested code for this below) efficiently. */
-ssize_t dadfs_write(struct file *filp, const char __user *buf, size_t len, loff_t *ppos)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3,11,0)
+ssize_t dadfs_write(struct file * filp, const char __user * buf, size_t len,
+		       loff_t * ppos)
+#else
+ssize_t dadfs_write(struct kiocb* kiocb, struct iov_iter * from)
+#endif
 {
 	/* After the commit dd37978c5 in the upstream linux kernel,
 	 * we can use just filp->f_inode instead of the
@@ -388,62 +390,76 @@ ssize_t dadfs_write(struct file *filp, const char __user *buf, size_t len, loff_
 
 	int retval;
 
-	sb = filp->f_path.dentry->d_inode->i_sb;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,11,0)
+	struct file* filp = kiocb->ki_filp;
+	loff_t *ppos = &(kiocb->ki_pos);
+	size_t len = iov_iter_count(from);
+#endif
+	//sb = filp->f_path.dentry->d_inode->i_sb;
+	sb = filp->f_inode->i_sb;
+
 	sfs_sb = DADFS_SB(sb);
 
 	handle = jbd2_journal_start(sfs_sb->journal, 1);
-
 	if (IS_ERR(handle))
 		return PTR_ERR(handle);
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3,11,0)
 	retval = generic_write_checks(filp, ppos, &len, 0);
+#else
+	retval = generic_write_checks(kiocb,from);
+#endif
+# if LINUX_VERSION_CODE < KERNEL_VERSION(3,11,0)
 	if (retval)
+#else
+	if(!retval)
+#endif
 		return retval;
 
 	inode = filp->f_path.dentry->d_inode;
 	sfs_inode = DADFS_INODE(inode);
 
 	bh = sb_bread(filp->f_path.dentry->d_inode->i_sb,
-				  sfs_inode->data_block_number);
+					    sfs_inode->data_block_number);
 
-	if (!bh)
-	{
+	if (!bh) {
 		printk(KERN_ERR "Reading the block number [%llu] failed.",
-			   sfs_inode->data_block_number);
+		       sfs_inode->data_block_number);
 		return 0;
 	}
+	//printk(KERN_INFO "SHIT\n");
 	buffer = (char *)bh->b_data;
 
 	/* Move the pointer until the required byte offset */
 	buffer += *ppos;
 
 	retval = jbd2_journal_get_write_access(handle, bh);
-	if (WARN_ON(retval))
-	{
+	if (WARN_ON(retval)) {
 		brelse(bh);
 		sfs_trace("Can't get write access for bh\n");
 		return retval;
 	}
-
-	if (copy_from_user(buffer, buf, len))
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3,11,0)
+	if (copy_from_user(buffer, buf, len)) 
+#else
+	if (!copy_from_iter(buffer,len,from))
+#endif
 	{
 		brelse(bh);
 		printk(KERN_ERR
-			   "Error copying file contents from the userspace buffer to the kernel space\n");
+		       "Error copying file contents from the userspace buffer to the kernel space\n");
 		return -EFAULT;
 	}
 	*ppos += len;
 
 	retval = jbd2_journal_dirty_metadata(handle, bh);
-	if (WARN_ON(retval))
-	{
+	if (WARN_ON(retval)) {
 		brelse(bh);
 		return retval;
 	}
 	handle->h_sync = 1;
 	retval = jbd2_journal_stop(handle);
-	if (WARN_ON(retval))
-	{
+	if (WARN_ON(retval)) {
 		brelse(bh);
 		return retval;
 	}
@@ -458,16 +474,13 @@ ssize_t dadfs_write(struct file *filp, const char __user *buf, size_t len, loff_
 	 * FIXME: What to do if someone writes only some parts in between ?
 	 * The above code will also fail in case a file is overwritten with
 	 * a shorter buffer */
-	if (mutex_lock_interruptible(&dadfs_inodes_mgmt_lock))
-	{
+	if (mutex_lock_interruptible(&dadfs_inodes_mgmt_lock)) {
 		sfs_trace("Failed to acquire mutex lock\n");
 		return -EINTR;
 	}
 	sfs_inode->file_size = *ppos;
 	retval = dadfs_inode_save(sb, sfs_inode);
-
-	if (retval)
-	{
+	if (retval) {
 		len = retval;
 	}
 	mutex_unlock(&dadfs_inodes_mgmt_lock);
@@ -476,8 +489,14 @@ ssize_t dadfs_write(struct file *filp, const char __user *buf, size_t len, loff_
 }
 
 const struct file_operations dadfs_file_operations = {
+	
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3,11,0)
 	.read = dadfs_read,
 	.write = dadfs_write,
+#else
+	.read_iter = dadfs_read,
+	.write_iter = dadfs_write,
+#endif
 };
 
 const struct file_operations dadfs_dir_operations = {
@@ -490,13 +509,13 @@ const struct file_operations dadfs_dir_operations = {
 };
 
 struct dentry *dadfs_lookup(struct inode *parent_inode,
-							struct dentry *child_dentry, unsigned int flags);
+			       struct dentry *child_dentry, unsigned int flags);
 
 static int dadfs_create(struct inode *dir, struct dentry *dentry,
-						umode_t mode, bool excl);
+			   umode_t mode, bool excl);
 
 static int dadfs_mkdir(struct inode *dir, struct dentry *dentry,
-					   umode_t mode);
+			  umode_t mode);
 
 static struct inode_operations dadfs_inode_ops = {
 	.create = dadfs_create,
@@ -505,7 +524,7 @@ static struct inode_operations dadfs_inode_ops = {
 };
 
 static int dadfs_create_fs_object(struct inode *dir, struct dentry *dentry,
-								  umode_t mode)
+				     umode_t mode)
 {
 	struct inode *inode;
 	struct dadfs_inode *sfs_inode;
@@ -516,40 +535,35 @@ static int dadfs_create_fs_object(struct inode *dir, struct dentry *dentry,
 	uint64_t count;
 	int ret;
 
-	if (mutex_lock_interruptible(&dadfs_directory_children_update_lock))
-	{
+	if (mutex_lock_interruptible(&dadfs_directory_children_update_lock)) {
 		sfs_trace("Failed to acquire mutex lock\n");
 		return -EINTR;
 	}
 	sb = dir->i_sb;
 
 	ret = dadfs_sb_get_objects_count(sb, &count);
-	if (ret < 0)
-	{
+	if (ret < 0) {
 		mutex_unlock(&dadfs_directory_children_update_lock);
 		return ret;
 	}
 
-	if (unlikely(count >= DADFS_MAX_FILESYSTEM_OBJECTS_SUPPORTED))
-	{
+	if (unlikely(count >= DADFS_MAX_FILESYSTEM_OBJECTS_SUPPORTED)) {
 		/* The above condition can be just == insted of the >= */
 		printk(KERN_ERR
-			   "Maximum number of objects supported by dadfs is already reached");
+		       "Maximum number of objects supported by dadfs is already reached");
 		mutex_unlock(&dadfs_directory_children_update_lock);
 		return -ENOSPC;
 	}
 
-	if (!S_ISDIR(mode) && !S_ISREG(mode))
-	{
+	if (!S_ISDIR(mode) && !S_ISREG(mode)) {
 		printk(KERN_ERR
-			   "Creation request but for neither a file nor a directory");
+		       "Creation request but for neither a file nor a directory");
 		mutex_unlock(&dadfs_directory_children_update_lock);
 		return -EINVAL;
 	}
 
 	inode = new_inode(sb);
-	if (!inode)
-	{
+	if (!inode) {
 		mutex_unlock(&dadfs_directory_children_update_lock);
 		return -ENOMEM;
 	}
@@ -564,14 +578,11 @@ static int dadfs_create_fs_object(struct inode *dir, struct dentry *dentry,
 	inode->i_private = sfs_inode;
 	sfs_inode->mode = mode;
 
-	if (S_ISDIR(mode))
-	{
+	if (S_ISDIR(mode)) {
 		printk(KERN_INFO "New directory creation request\n");
 		sfs_inode->dir_children_count = 0;
 		inode->i_fop = &dadfs_dir_operations;
-	}
-	else if (S_ISREG(mode))
-	{
+	} else if (S_ISREG(mode)) {
 		printk(KERN_INFO "New file creation request\n");
 		sfs_inode->file_size = 0;
 		inode->i_fop = &dadfs_file_operations;
@@ -585,8 +596,7 @@ static int dadfs_create_fs_object(struct inode *dir, struct dentry *dentry,
 	 * even in most crashes
 	 */
 	ret = dadfs_sb_get_a_freeblock(sb, &sfs_inode->data_block_number);
-	if (ret < 0)
-	{
+	if (ret < 0) {
 		printk(KERN_ERR "dadfs could not get a freeblock");
 		mutex_unlock(&dadfs_directory_children_update_lock);
 		return ret;
@@ -610,8 +620,7 @@ static int dadfs_create_fs_object(struct inode *dir, struct dentry *dentry,
 	sync_dirty_buffer(bh);
 	brelse(bh);
 
-	if (mutex_lock_interruptible(&dadfs_inodes_mgmt_lock))
-	{
+	if (mutex_lock_interruptible(&dadfs_inodes_mgmt_lock)) {
 		mutex_unlock(&dadfs_directory_children_update_lock);
 		sfs_trace("Failed to acquire mutex lock\n");
 		return -EINTR;
@@ -619,8 +628,7 @@ static int dadfs_create_fs_object(struct inode *dir, struct dentry *dentry,
 
 	parent_dir_inode->dir_children_count++;
 	ret = dadfs_inode_save(sb, parent_dir_inode);
-	if (ret)
-	{
+	if (ret) {
 		mutex_unlock(&dadfs_inodes_mgmt_lock);
 		mutex_unlock(&dadfs_directory_children_update_lock);
 
@@ -640,7 +648,7 @@ static int dadfs_create_fs_object(struct inode *dir, struct dentry *dentry,
 }
 
 static int dadfs_mkdir(struct inode *dir, struct dentry *dentry,
-					   umode_t mode)
+			  umode_t mode)
 {
 	/* I believe this is a bug in the kernel, for some reason, the mkdir callback
 	 * does not get the S_IFDIR flag set. Even ext2 sets is explicitly */
@@ -648,7 +656,7 @@ static int dadfs_mkdir(struct inode *dir, struct dentry *dentry,
 }
 
 static int dadfs_create(struct inode *dir, struct dentry *dentry,
-						umode_t mode, bool excl)
+			   umode_t mode, bool excl)
 {
 	return dadfs_create_fs_object(dir, dentry, mode);
 }
@@ -671,11 +679,11 @@ static struct inode *dadfs_iget(struct super_block *sb, int ino)
 		inode->i_fop = &dadfs_file_operations;
 	else
 		printk(KERN_ERR
-			   "Unknown inode type. Neither a directory nor a file");
+					 "Unknown inode type. Neither a directory nor a file");
 
 	/* FIXME: We should store these times to disk and retrieve them */
 	inode->i_atime = inode->i_mtime = inode->i_ctime =
-		current_time(inode);
+			current_time(inode);
 
 	inode->i_private = sfs_inode;
 
@@ -683,7 +691,7 @@ static struct inode *dadfs_iget(struct super_block *sb, int ino)
 }
 
 struct dentry *dadfs_lookup(struct inode *parent_inode,
-							struct dentry *child_dentry, unsigned int flags)
+			       struct dentry *child_dentry, unsigned int flags)
 {
 	struct dadfs_inode *parent = DADFS_INODE(parent_inode);
 	struct super_block *sb = parent_inode->i_sb;
@@ -694,16 +702,14 @@ struct dentry *dadfs_lookup(struct inode *parent_inode,
 	bh = sb_bread(sb, parent->data_block_number);
 	BUG_ON(!bh);
 	sfs_trace("Lookup in: ino=%llu, b=%llu\n",
-			  parent->inode_no, parent->data_block_number);
+				parent->inode_no, parent->data_block_number);
 
 	record = (struct dadfs_dir_record *)bh->b_data;
-	for (i = 0; i < parent->dir_children_count; i++)
-	{
+	for (i = 0; i < parent->dir_children_count; i++) {
 		sfs_trace("Have file: '%s' (ino=%llu)\n",
-				  record->filename, record->inode_no);
+					record->filename, record->inode_no);
 
-		if (!strcmp(record->filename, child_dentry->d_name.name))
-		{
+		if (!strcmp(record->filename, child_dentry->d_name.name)) {
 			/* FIXME: There is a corner case where if an allocated inode,
 			 * is not written to the inode store, but the inodes_count is
 			 * incremented. Then if the random string on the disk matches
@@ -719,11 +725,12 @@ struct dentry *dadfs_lookup(struct inode *parent_inode,
 	}
 
 	printk(KERN_ERR
-		   "No inode found for the filename [%s]\n",
-		   child_dentry->d_name.name);
+	       "No inode found for the filename [%s]\n",
+	       child_dentry->d_name.name);
 
 	return NULL;
 }
+
 
 /**
  * Simplest
@@ -733,7 +740,7 @@ void dadfs_destory_inode(struct inode *inode)
 	struct dadfs_inode *sfs_inode = DADFS_INODE(inode);
 
 	printk(KERN_INFO "Freeing private data of inode %p (%lu)\n",
-		   sfs_inode, inode->i_ino);
+	       sfs_inode, inode->i_ino);
 	kmem_cache_free(sfs_inode_cachep, sfs_inode);
 }
 
@@ -762,7 +769,7 @@ static int dadfs_load_journal(struct super_block *sb, int devnum)
 	dev = new_decode_dev(devnum);
 	printk(KERN_INFO "Journal device is: %s\n", __bdevname(dev, b));
 
-	bdev = blkdev_get_by_dev(dev, FMODE_READ | FMODE_WRITE | FMODE_EXCL, sb);
+	bdev = blkdev_get_by_dev(dev, FMODE_READ|FMODE_WRITE|FMODE_EXCL, sb);
 	if (IS_ERR(bdev))
 		return 1;
 	blocksize = sb->s_blocksize;
@@ -770,8 +777,7 @@ static int dadfs_load_journal(struct super_block *sb, int devnum)
 	len = DADFS_MAX_FILESYSTEM_OBJECTS_SUPPORTED;
 
 	journal = jbd2_journal_init_dev(bdev, sb->s_bdev, 1, -1, blocksize);
-	if (!journal)
-	{
+	if (!journal) {
 		printk(KERN_ERR "Can't load journal\n");
 		return 1;
 	}
@@ -787,8 +793,7 @@ static int dadfs_sb_load_journal(struct super_block *sb, struct inode *inode)
 	struct dadfs_super_block *sfs_sb = DADFS_SB(sb);
 
 	journal = jbd2_journal_init_inode(inode);
-	if (!journal)
-	{
+	if (!journal) {
 		printk(KERN_ERR "Can't load journal\n");
 		return 1;
 	}
@@ -811,58 +816,52 @@ static int dadfs_parse_options(struct super_block *sb, char *options)
 	int token, ret, arg;
 	char *p;
 
-	while ((p = strsep(&options, ",")) != NULL)
-	{
+	while ((p = strsep(&options, ",")) != NULL) {
 		if (!*p)
 			continue;
 
 		args[0].to = args[0].from = NULL;
 		token = match_token(p, tokens, args);
 
-		switch (token)
-		{
-		case DADFS_OPT_JOURNAL_DEV:
-			if (args->from && match_int(args, &arg))
-				return 1;
-			printk(KERN_INFO "Loading journal devnum: %i\n", arg);
-			if ((ret = dadfs_load_journal(sb, arg)))
-				return ret;
-			break;
+		switch (token) {
+			case DADFS_OPT_JOURNAL_DEV:
+				if (args->from && match_int(args, &arg))
+					return 1;
+				printk(KERN_INFO "Loading journal devnum: %i\n", arg);
+				if ((ret = dadfs_load_journal(sb, arg)))
+					return ret;
+				break;
 
-		case DADFS_OPT_JOURNAL_PATH:
-		{
-			char *journal_path;
-			struct inode *journal_inode;
-			struct path path;
-
-			BUG_ON(!(journal_path = match_strdup(&args[0])));
-			ret = kern_path(journal_path, LOOKUP_FOLLOW, &path);
-			if (ret)
+			case DADFS_OPT_JOURNAL_PATH:
 			{
-				printk(KERN_ERR "could not find journal device path: error %d\n", ret);
+				char *journal_path;
+				struct inode *journal_inode;
+				struct path path;
+
+				BUG_ON(!(journal_path = match_strdup(&args[0])));
+				ret = kern_path(journal_path, LOOKUP_FOLLOW, &path);
+				if (ret) {
+					printk(KERN_ERR "could not find journal device path: error %d\n", ret);
+					kfree(journal_path);
+				}
+
+				journal_inode = path.dentry->d_inode;
+
+				path_put(&path);
 				kfree(journal_path);
+
+				if (S_ISBLK(journal_inode->i_mode)) {
+					unsigned long journal_devnum = new_encode_dev(journal_inode->i_rdev);
+					if ((ret = dadfs_load_journal(sb, journal_devnum)))
+						return ret;
+				} else {
+					/** Seems didn't work properly */
+					if ((ret = dadfs_sb_load_journal(sb, journal_inode)))
+						return ret;
+				}
+
+				break;
 			}
-
-			journal_inode = path.dentry->d_inode;
-
-			path_put(&path);
-			kfree(journal_path);
-
-			if (S_ISBLK(journal_inode->i_mode))
-			{
-				unsigned long journal_devnum = new_encode_dev(journal_inode->i_rdev);
-				if ((ret = dadfs_load_journal(sb, journal_devnum)))
-					return ret;
-			}
-			else
-			{
-				/** Seems didn't work properly */
-				if ((ret = dadfs_sb_load_journal(sb, journal_inode)))
-					return ret;
-			}
-
-			break;
-		}
 		}
 	}
 
@@ -884,27 +883,25 @@ int dadfs_fill_super(struct super_block *sb, void *data, int silent)
 	sb_disk = (struct dadfs_super_block *)bh->b_data;
 
 	printk(KERN_INFO "The magic number obtained in disk is: [%llu]\n",
-		   sb_disk->magic);
+	       sb_disk->magic);
 
-	if (unlikely(sb_disk->magic != DADFS_MAGIC))
-	{
+	if (unlikely(sb_disk->magic != DADFS_MAGIC)) {
 		printk(KERN_ERR
-			   "The filesystem that you try to mount is not of type dadfs. Magicnumber mismatch.");
+		       "The filesystem that you try to mount is not of type dadfs. Magicnumber mismatch.");
 		goto release;
 	}
 
-	if (unlikely(sb_disk->block_size != DADFS_DEFAULT_BLOCK_SIZE))
-	{
+	if (unlikely(sb_disk->block_size != DADFS_DEFAULT_BLOCK_SIZE)) {
 		printk(KERN_ERR
-			   "dadfs seem to be formatted using a non-standard block size.");
+		       "dadfs seem to be formatted using a non-standard block size.");
 		goto release;
 	}
 	/** XXX: Avoid this hack, by adding one more sb wrapper, but non-disk */
 	sb_disk->journal = NULL;
 
 	printk(KERN_INFO
-		   "dadfs filesystem of version [%llu] formatted with a block size of [%llu] detected in the device.\n",
-		   sb_disk->version, sb_disk->block_size);
+	       "dadfs filesystem of version [%llu] formatted with a block size of [%llu] detected in the device.\n",
+	       sb_disk->version, sb_disk->block_size);
 
 	/* A magic number that uniquely identifies our filesystem type */
 	sb->s_magic = DADFS_MAGIC;
@@ -922,10 +919,10 @@ int dadfs_fill_super(struct super_block *sb, void *data, int silent)
 	root_inode->i_op = &dadfs_inode_ops;
 	root_inode->i_fop = &dadfs_dir_operations;
 	root_inode->i_atime = root_inode->i_mtime = root_inode->i_ctime =
-		current_time(root_inode);
+	    current_time(root_inode);
 
 	root_inode->i_private =
-		dadfs_get_inode(sb, DADFS_ROOTDIR_INODE_NUMBER);
+	    dadfs_get_inode(sb, DADFS_ROOTDIR_INODE_NUMBER);
 
 	/* TODO: move such stuff into separate header. */
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 3, 0)
@@ -936,8 +933,7 @@ int dadfs_fill_super(struct super_block *sb, void *data, int silent)
 		iput(root_inode);
 #endif
 
-	if (!sb->s_root)
-	{
+	if (!sb->s_root) {
 		ret = -ENOMEM;
 		goto release;
 	}
@@ -945,8 +941,7 @@ int dadfs_fill_super(struct super_block *sb, void *data, int silent)
 	if ((ret = dadfs_parse_options(sb, data)))
 		goto release;
 
-	if (!sb_disk->journal)
-	{
+	if (!sb_disk->journal) {
 		struct inode *journal_inode;
 		journal_inode = dadfs_iget(sb, DADFS_JOURNAL_INODE_NUMBER);
 
@@ -962,10 +957,11 @@ release:
 }
 
 static struct dentry *dadfs_mount(struct file_system_type *fs_type,
-								  int flags, const char *dev_name,
-								  void *data)
+				     int flags, const char *dev_name,
+				     void *data)
 {
 	struct dentry *ret;
+	printk(KERN_INFO "Hello World\n");
 
 	ret = mount_bdev(fs_type, flags, dev_name, data, dadfs_fill_super);
 
@@ -973,7 +969,7 @@ static struct dentry *dadfs_mount(struct file_system_type *fs_type,
 		printk(KERN_ERR "Error mounting dadfs");
 	else
 		printk(KERN_INFO "dadfs is succesfully mounted on [%s]\n",
-			   dev_name);
+		       dev_name);
 
 	return ret;
 }
@@ -981,7 +977,7 @@ static struct dentry *dadfs_mount(struct file_system_type *fs_type,
 static void dadfs_kill_superblock(struct super_block *sb)
 {
 	printk(KERN_INFO
-		   "dadfs superblock is destroyed. Unmount succesful.\n");
+	       "dadfs superblock is destroyed. Unmount succesful.\n");
 	/* This is just a dummy function as of now. As our filesystem gets matured,
 	 * we will do more meaningful operations here */
 
@@ -1002,12 +998,11 @@ static int dadfs_init(void)
 	int ret;
 
 	sfs_inode_cachep = kmem_cache_create("sfs_inode_cache",
-										 sizeof(struct dadfs_inode),
-										 0,
-										 (SLAB_RECLAIM_ACCOUNT | SLAB_MEM_SPREAD),
-										 NULL);
-	if (!sfs_inode_cachep)
-	{
+	                                     sizeof(struct dadfs_inode),
+	                                     0,
+	                                     (SLAB_RECLAIM_ACCOUNT| SLAB_MEM_SPREAD),
+	                                     NULL);
+	if (!sfs_inode_cachep) {
 		return -ENOMEM;
 	}
 
@@ -1031,7 +1026,7 @@ static void dadfs_exit(void)
 		printk(KERN_INFO "Sucessfully unregistered dadfs\n");
 	else
 		printk(KERN_ERR "Failed to unregister dadfs. Error:[%d]",
-			   ret);
+		       ret);
 }
 
 module_init(dadfs_init);
