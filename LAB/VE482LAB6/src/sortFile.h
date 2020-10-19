@@ -8,5 +8,6 @@
 #include "plugin_manager.h"
 
 
-int processFile(PluginManager* pm,char* filename, int type, int order);
+int processFile(plugin_manager *pm, char *filename, int type, int order);
+
 #endif //SRC_SORTFILE_H

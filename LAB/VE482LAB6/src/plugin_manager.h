@@ -5,20 +5,18 @@
 #ifndef SRC_PLUGIN_MANAGER_H
 #define SRC_PLUGIN_MANAGER_H
 
-typedef int (*PluginRoleHook)(char*,char*,int,int);
+typedef int (*plugin_hook)(char *, char *, int, int);
 
 
-typedef struct PluginManager_t PluginManager;
+typedef struct plugin_manager_t plugin_manager;
 
-PluginManager* PluginManager_new();
+plugin_manager *create_new_plugin_manager();
 
-void PluginManager_free(PluginManager* pm);
+void free_plugin_manager(plugin_manager *);
 
-void PluginManager_register_role_hook(PluginManager* pm, char* rolename, PluginRoleHook hook);
+void plugin_manager_register_role_hook(plugin_manager *, char *, plugin_hook);
 
-int PluginManager_apply_role_hooks(PluginManager* pm, char*filename, char* rolename, int type,int order);
-
-
+int plugin_manager_apply_role_hooks(plugin_manager *, char *, char *, int, int);
 
 
 #endif //SRC_PLUGIN_MANAGER_H

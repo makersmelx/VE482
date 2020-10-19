@@ -7,8 +7,8 @@
 
 #include "plugin_manager.h"
 
-void* discover_plugins(char* dirname, PluginManager* pm);
+void *discover_plugins_in_directory(char *, plugin_manager *);
 
-void cleanup_plugins(void*);
+void delete_all_plugins(void *);
 
 #endif //SRC_PLUGIN_DISCOVERY_H

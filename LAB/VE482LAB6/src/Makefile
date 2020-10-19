@@ -48,24 +48,13 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = "/mnt/d/OneDrive - sjtu.edu.cn/JI/2019FA/VE482/LAB/VE482LAB6/src"
+CMAKE_SOURCE_DIR = /tmp/tmp.wdQD0nq0P9
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = "/mnt/d/OneDrive - sjtu.edu.cn/JI/2019FA/VE482/LAB/VE482LAB6/src"
+CMAKE_BINARY_DIR = /tmp/tmp.wdQD0nq0P9
 
 #=============================================================================
 # Targets provided globally by CMake.
-
-# Special rule for the target rebuild_cache
-rebuild_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
-	/usr/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
-.PHONY : rebuild_cache
-
-# Special rule for the target rebuild_cache
-rebuild_cache/fast: rebuild_cache
-
-.PHONY : rebuild_cache/fast
 
 # Special rule for the target edit_cache
 edit_cache:
@@ -78,11 +67,22 @@ edit_cache/fast: edit_cache
 
 .PHONY : edit_cache/fast
 
+# Special rule for the target rebuild_cache
+rebuild_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
+	/usr/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+.PHONY : rebuild_cache
+
+# Special rule for the target rebuild_cache
+rebuild_cache/fast: rebuild_cache
+
+.PHONY : rebuild_cache/fast
+
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start "/mnt/d/OneDrive - sjtu.edu.cn/JI/2019FA/VE482/LAB/VE482LAB6/src/CMakeFiles" "/mnt/d/OneDrive - sjtu.edu.cn/JI/2019FA/VE482/LAB/VE482LAB6/src/CMakeFiles/progress.marks"
+	$(CMAKE_COMMAND) -E cmake_progress_start /tmp/tmp.wdQD0nq0P9/CMakeFiles /tmp/tmp.wdQD0nq0P9/CMakeFiles/progress.marks
 	$(MAKE) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start "/mnt/d/OneDrive - sjtu.edu.cn/JI/2019FA/VE482/LAB/VE482LAB6/src/CMakeFiles" 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /tmp/tmp.wdQD0nq0P9/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -124,19 +124,6 @@ src/fast:
 .PHONY : src/fast
 
 #=============================================================================
-# Target rules for targets named csv
-
-# Build rule for target.
-csv: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 csv
-.PHONY : csv
-
-# fast build rule for target.
-csv/fast:
-	$(MAKE) -f CMakeFiles/csv.dir/build.make CMakeFiles/csv.dir/build
-.PHONY : csv/fast
-
-#=============================================================================
 # Target rules for targets named txt
 
 # Build rule for target.
@@ -148,6 +135,19 @@ txt: cmake_check_build_system
 txt/fast:
 	$(MAKE) -f CMakeFiles/txt.dir/build.make CMakeFiles/txt.dir/build
 .PHONY : txt/fast
+
+#=============================================================================
+# Target rules for targets named csv
+
+# Build rule for target.
+csv: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 csv
+.PHONY : csv
+
+# fast build rule for target.
+csv/fast:
+	$(MAKE) -f CMakeFiles/csv.dir/build.make CMakeFiles/csv.dir/build
+.PHONY : csv/fast
 
 interface.o: interface.c.o
 
@@ -237,8 +237,8 @@ plugin_manager.o: plugin_manager.c.o
 # target to build an object file
 plugin_manager.c.o:
 	$(MAKE) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/plugin_manager.c.o
-	$(MAKE) -f CMakeFiles/csv.dir/build.make CMakeFiles/csv.dir/plugin_manager.c.o
 	$(MAKE) -f CMakeFiles/txt.dir/build.make CMakeFiles/txt.dir/plugin_manager.c.o
+	$(MAKE) -f CMakeFiles/csv.dir/build.make CMakeFiles/csv.dir/plugin_manager.c.o
 .PHONY : plugin_manager.c.o
 
 plugin_manager.i: plugin_manager.c.i
@@ -248,8 +248,8 @@ plugin_manager.i: plugin_manager.c.i
 # target to preprocess a source file
 plugin_manager.c.i:
 	$(MAKE) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/plugin_manager.c.i
-	$(MAKE) -f CMakeFiles/csv.dir/build.make CMakeFiles/csv.dir/plugin_manager.c.i
 	$(MAKE) -f CMakeFiles/txt.dir/build.make CMakeFiles/txt.dir/plugin_manager.c.i
+	$(MAKE) -f CMakeFiles/csv.dir/build.make CMakeFiles/csv.dir/plugin_manager.c.i
 .PHONY : plugin_manager.c.i
 
 plugin_manager.s: plugin_manager.c.s
@@ -259,8 +259,8 @@ plugin_manager.s: plugin_manager.c.s
 # target to generate assembly for a file
 plugin_manager.c.s:
 	$(MAKE) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/plugin_manager.c.s
-	$(MAKE) -f CMakeFiles/csv.dir/build.make CMakeFiles/csv.dir/plugin_manager.c.s
 	$(MAKE) -f CMakeFiles/txt.dir/build.make CMakeFiles/txt.dir/plugin_manager.c.s
+	$(MAKE) -f CMakeFiles/csv.dir/build.make CMakeFiles/csv.dir/plugin_manager.c.s
 .PHONY : plugin_manager.c.s
 
 plugins/csv.o: plugins/csv.c.o
@@ -300,8 +300,8 @@ plugins/list.o: plugins/list.c.o
 # target to build an object file
 plugins/list.c.o:
 	$(MAKE) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/plugins/list.c.o
-	$(MAKE) -f CMakeFiles/csv.dir/build.make CMakeFiles/csv.dir/plugins/list.c.o
 	$(MAKE) -f CMakeFiles/txt.dir/build.make CMakeFiles/txt.dir/plugins/list.c.o
+	$(MAKE) -f CMakeFiles/csv.dir/build.make CMakeFiles/csv.dir/plugins/list.c.o
 .PHONY : plugins/list.c.o
 
 plugins/list.i: plugins/list.c.i
@@ -311,8 +311,8 @@ plugins/list.i: plugins/list.c.i
 # target to preprocess a source file
 plugins/list.c.i:
 	$(MAKE) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/plugins/list.c.i
-	$(MAKE) -f CMakeFiles/csv.dir/build.make CMakeFiles/csv.dir/plugins/list.c.i
 	$(MAKE) -f CMakeFiles/txt.dir/build.make CMakeFiles/txt.dir/plugins/list.c.i
+	$(MAKE) -f CMakeFiles/csv.dir/build.make CMakeFiles/csv.dir/plugins/list.c.i
 .PHONY : plugins/list.c.i
 
 plugins/list.s: plugins/list.c.s
@@ -322,8 +322,8 @@ plugins/list.s: plugins/list.c.s
 # target to generate assembly for a file
 plugins/list.c.s:
 	$(MAKE) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/plugins/list.c.s
-	$(MAKE) -f CMakeFiles/csv.dir/build.make CMakeFiles/csv.dir/plugins/list.c.s
 	$(MAKE) -f CMakeFiles/txt.dir/build.make CMakeFiles/txt.dir/plugins/list.c.s
+	$(MAKE) -f CMakeFiles/csv.dir/build.make CMakeFiles/csv.dir/plugins/list.c.s
 .PHONY : plugins/list.c.s
 
 plugins/logic.o: plugins/logic.c.o
@@ -333,8 +333,8 @@ plugins/logic.o: plugins/logic.c.o
 # target to build an object file
 plugins/logic.c.o:
 	$(MAKE) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/plugins/logic.c.o
-	$(MAKE) -f CMakeFiles/csv.dir/build.make CMakeFiles/csv.dir/plugins/logic.c.o
 	$(MAKE) -f CMakeFiles/txt.dir/build.make CMakeFiles/txt.dir/plugins/logic.c.o
+	$(MAKE) -f CMakeFiles/csv.dir/build.make CMakeFiles/csv.dir/plugins/logic.c.o
 .PHONY : plugins/logic.c.o
 
 plugins/logic.i: plugins/logic.c.i
@@ -344,8 +344,8 @@ plugins/logic.i: plugins/logic.c.i
 # target to preprocess a source file
 plugins/logic.c.i:
 	$(MAKE) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/plugins/logic.c.i
-	$(MAKE) -f CMakeFiles/csv.dir/build.make CMakeFiles/csv.dir/plugins/logic.c.i
 	$(MAKE) -f CMakeFiles/txt.dir/build.make CMakeFiles/txt.dir/plugins/logic.c.i
+	$(MAKE) -f CMakeFiles/csv.dir/build.make CMakeFiles/csv.dir/plugins/logic.c.i
 .PHONY : plugins/logic.c.i
 
 plugins/logic.s: plugins/logic.c.s
@@ -355,8 +355,8 @@ plugins/logic.s: plugins/logic.c.s
 # target to generate assembly for a file
 plugins/logic.c.s:
 	$(MAKE) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/plugins/logic.c.s
-	$(MAKE) -f CMakeFiles/csv.dir/build.make CMakeFiles/csv.dir/plugins/logic.c.s
 	$(MAKE) -f CMakeFiles/txt.dir/build.make CMakeFiles/txt.dir/plugins/logic.c.s
+	$(MAKE) -f CMakeFiles/csv.dir/build.make CMakeFiles/csv.dir/plugins/logic.c.s
 .PHONY : plugins/logic.c.s
 
 plugins/txt.o: plugins/txt.c.o
@@ -422,11 +422,11 @@ help:
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
-	@echo "... rebuild_cache"
-	@echo "... src"
 	@echo "... edit_cache"
-	@echo "... csv"
+	@echo "... src"
 	@echo "... txt"
+	@echo "... csv"
+	@echo "... rebuild_cache"
 	@echo "... interface.o"
 	@echo "... interface.i"
 	@echo "... interface.s"

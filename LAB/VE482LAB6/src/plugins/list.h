@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #define MAXLINE 1024
 
 #define SORT_INT 0
@@ -15,20 +16,18 @@
 #define DECREASE 1
 #define RANDOM 2
 
-typedef struct _Node
-{
-    char* key;
-    void* val;
-    struct _Node* next;
-}_node;
+typedef struct _Node {
+    char *key;
+    void *val;
+    struct _Node *next;
+} _node;
 
-typedef struct _List
-{
-    _node* head;
+typedef struct _List {
+    _node *head;
     int length;
-}_list;
+} _list;
 
-_list* initList(void);
+_list *initList(void);
 
 void freeList(_list *list);
 
